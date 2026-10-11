@@ -247,6 +247,7 @@ export interface PolicySetting {
 }
 
 export interface User extends CommonMixin {
+  sso_managed?: boolean;
   email: string;
   nick: string;
   password?: string;

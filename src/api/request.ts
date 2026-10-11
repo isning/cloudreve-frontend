@@ -215,13 +215,13 @@ export function send<T = any>(
         switch (resp.data.code) {
           case Code.CredentialInvalid:
           case Code.CodeLoginRequired:
-            if (!signOutLock) {
+            if (!signOutLock && !opts.noCredential) {
               SessionManager.signOutCurrent();
               router.navigate(
                 "/session?redirect=" + encodeURIComponent(window.location.pathname + window.location.search),
               );
             }
-            signOutLock = true;
+            if (!opts.noCredential) signOutLock = true;
         }
 
         throw new AppError(resp.data);

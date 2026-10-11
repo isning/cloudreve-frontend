@@ -182,6 +182,7 @@ const Settings = () => {
               {tab === SettingsPageTab.UserSession && (
                 <SettingsWrapper
                   settings={[
+                    "external_login_providers",
                     "register_enabled",
                     "email_active",
                     "default_group",

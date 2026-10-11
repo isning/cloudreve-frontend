@@ -39,6 +39,7 @@ export interface PinedFile {
 }
 
 export interface PrepareLoginResponse {
+  openid_providers?: number[];
   webauthn_enabled: boolean;
   sso_enabled: boolean;
   password_enabled: boolean;
@@ -96,6 +97,13 @@ export const GroupPermission = {
 };
 
 export interface UserSettings {
+  open_id?: import("./openid.ts").OpenIDBinding[];
+  credential_capabilities?: {
+    password_update: boolean;
+    password_reset: boolean;
+    passkey_register: boolean;
+    reason?: string;
+  };
   version_retention_enabled: boolean;
   version_retention_ext?: string[];
   version_retention_max?: number;
