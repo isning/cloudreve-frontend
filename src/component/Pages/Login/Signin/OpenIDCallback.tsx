@@ -8,7 +8,7 @@ import { AppError, Code } from "../../../../api/request.ts";
 import { useAppDispatch } from "../../../../redux/hooks.ts";
 import { refreshUserSession } from "../../../../redux/thunks/session.ts";
 import SessionManager from "../../../../session";
-import { forgetOpenID, readOpenID } from "../../../../session/openid.ts";
+import { extendOpenIDForMFA, forgetOpenID, OpenIDReturn, readOpenID } from "../../../../session/openid.ts";
 import Phase2FA from "../Phases/Phase2FA.tsx";
 
 export default function OpenIDCallback() {
@@ -23,8 +23,7 @@ export default function OpenIDCallback() {
   const [loading, setLoading] = useState(true);
   const started = useRef(false);
   const state = query.get("state") ?? "";
-  const finish = async (response: LoginResponse | undefined) => {
-    const context = readOpenID(state);
+  const finish = async (response: LoginResponse | undefined, context: OpenIDReturn) => {
     if (context.linking) {
       if (response || SessionManager.currentLoginOrNull()?.user.id !== context.userID)
         throw new Error("Return to the original account to review the association.");
@@ -42,8 +41,9 @@ export default function OpenIDCallback() {
     // Keep codes and external state out of the address bar and referrers.
     window.history.replaceState(window.history.state, "", window.location.pathname);
     const run = async () => {
+      let context: OpenIDReturn | undefined;
       try {
-        const context = readOpenID(state);
+        context = readOpenID(state);
         if (!provider_id || !/^\d+$/.test(provider_id) || !Number.isSafeInteger(Number(provider_id)))
           throw new Error("Invalid provider identifier");
         if (query.getAll("state").length !== 1 || query.getAll("code").length > 1)
@@ -57,10 +57,12 @@ export default function OpenIDCallback() {
           SessionManager.currentLogin().user.id !== context.userID
         )
           throw new Error("The active account changed. Restart association from the original account.");
-        await finish(await dispatch(finishOpenID(Number(provider_id), query.get("code")!, state)));
+        await finish(await dispatch(finishOpenID(Number(provider_id), query.get("code")!, state)), context);
       } catch (e) {
-        if (e instanceof AppError && e.code === Code.Continue) setChallenge(e.response.data);
-        else {
+        if (e instanceof AppError && e.code === Code.Continue && context) {
+          extendOpenIDForMFA(state, context);
+          setChallenge(e.response.data);
+        } else {
           forgetOpenID(state);
           setError(e instanceof Error ? e.message : String(e));
         }
@@ -74,7 +76,8 @@ export default function OpenIDCallback() {
     setLoading(true);
     setError("");
     try {
-      await finish(await dispatch(completeOpenIDMFA(otp, challenge)));
+      const context = readOpenID(state);
+      await finish(await dispatch(completeOpenIDMFA(otp, challenge)), context);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {

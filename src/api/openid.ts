@@ -58,5 +58,7 @@ export const completeOpenIDMFA = (otp: string, session_id: string): ThunkRespons
   send("/session/token/2fa", { method: "POST", data: { otp, session_id } }, anonymous());
 export const discoverOpenID = (endpoint: string): ThunkResponse<string> =>
   send("/admin/tool/oidc", { params: { endpoint } });
+export const getOpenIDCallbackURI = (provider: number): ThunkResponse<string> =>
+  send(`/admin/tool/oidc/callback/${provider}`);
 export const releaseManagedAccount = (id: number): ThunkResponse<void> =>
   send(`/admin/user/${id}/release-managed`, { method: "POST" });

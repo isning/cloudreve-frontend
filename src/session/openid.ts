@@ -43,6 +43,12 @@ export function readOpenID(state: string): OpenIDReturn {
     throw new Error("Login context expired. Please restart sign in.");
   return { ...context, returnTo: safeReturn(context.returnTo) };
 }
+export function extendOpenIDForMFA(state: string, context: OpenIDReturn) {
+  sessionStorage.setItem(
+    prefix + state,
+    JSON.stringify({ ...context, returnTo: safeReturn(context.returnTo), expires: Date.now() + 5 * 60 * 1000 }),
+  );
+}
 export function forgetOpenID(state: string) {
   sessionStorage.removeItem(prefix + state);
 }

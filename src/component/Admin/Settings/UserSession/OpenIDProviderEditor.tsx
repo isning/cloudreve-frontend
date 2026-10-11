@@ -1,8 +1,18 @@
 import GroupSelectionInput from "../../Common/GroupSelectionInput.tsx";
-import { useState } from "react";
-import { Alert, Box, Button, Checkbox, FormControlLabel, Stack, TextField, Typography } from "@mui/material";
+import { useEffect, useState } from "react";
+import {
+  Alert,
+  Box,
+  Button,
+  Checkbox,
+  CircularProgress,
+  FormControlLabel,
+  Stack,
+  TextField,
+  Typography,
+} from "@mui/material";
 import { useTranslation } from "react-i18next";
-import { ExternalProvider, discoverOpenID } from "../../../../api/openid.ts";
+import { ExternalProvider, discoverOpenID, getOpenIDCallbackURI } from "../../../../api/openid.ts";
 import { useAppDispatch } from "../../../../redux/hooks.ts";
 
 export default function OpenIDProviderEditor({
@@ -19,6 +29,23 @@ export default function OpenIDProviderEditor({
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [callback, setCallback] = useState("");
+  const [callbackError, setCallbackError] = useState("");
+  useEffect(() => {
+    let active = true;
+    setCallback("");
+    setCallbackError("");
+    dispatch(getOpenIDCallbackURI(provider.id))
+      .then((uri) => {
+        if (active) setCallback(uri);
+      })
+      .catch((e) => {
+        if (active) setCallbackError(e instanceof Error ? e.message : String(e));
+      });
+    return () => {
+      active = false;
+    };
+  }, [dispatch, provider.id]);
   const set = (key: string, value: unknown) => onChange({ ...provider, config: { ...provider.config, [key]: value } });
   const field = (key: string, secret = false, required = false) => (
     <TextField
@@ -47,12 +74,18 @@ export default function OpenIDProviderEditor({
   };
   return (
     <Stack spacing={2}>
-      <Typography variant="body2" color="text.secondary">
-        {t("openid.callbackURI")}:{" "}
-        <Box component="code" sx={{ wordBreak: "break-all" }}>
-          {window.location.origin}/callback/openid/{provider.id}
-        </Box>
-      </Typography>
+      {callback ? (
+        <Typography variant="body2" color="text.secondary">
+          {t("openid.callbackURI")}:{" "}
+          <Box component="code" sx={{ wordBreak: "break-all" }}>
+            {callback}
+          </Box>
+        </Typography>
+      ) : callbackError ? (
+        <Alert severity="warning">{callbackError}</Alert>
+      ) : (
+        <CircularProgress size={16} />
+      )}
       {field("display_name")}
       {field("icon")}
       {provider.type === "logto" ? (
