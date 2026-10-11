@@ -1,3 +1,4 @@
+import OpenIDAssociations from "./OpenIDAssociations.tsx";
 import { Icon } from "@iconify/react";
 import { LoadingButton } from "@mui/lab";
 import {
@@ -250,65 +251,75 @@ const SecuritySetting = ({ setting, setSetting }: ProfileSettingProps) => {
 
   return (
     <Stack spacing={3}>
-      <SettingForm title={t("login.password")} lgWidth={5}>
-        <Collapse in={!showResetPassword}>
-          <SecondaryButton
-            sx={{ mt: 1 }}
-            onClick={() => setShowResetPassword(true)}
-            variant={"contained"}
-            startIcon={<Edit />}
-          >
-            {t("login.resetPassword")}
-          </SecondaryButton>
-        </Collapse>
-        <Collapse in={showResetPassword} sx={{ mt: 2 }} unmountOnExit>
-          <form ref={resetPwdFormRef}>
-            <Stack spacing={2}>
-              <DenseFilledTextField
-                required
-                label={t("setting.originalPassword")}
-                fullWidth
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                inputProps={{
-                  type: "password",
-                  minLength: 4,
-                  maxLength: 64,
-                }}
-              />
-              <DenseFilledTextField
-                required
-                label={t("login.newPassword")}
-                fullWidth
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                inputProps={{
-                  type: "password",
-                  minLength: 6,
-                  maxLength: 128,
-                }}
-              />
-              <DenseFilledTextField
-                required
-                label={t("login.repeatPassword")}
-                fullWidth
-                value={repeatPassword}
-                onChange={(e) => setRepeatPassword(e.target.value)}
-                inputProps={{
-                  type: "password",
-                  minLength: 6,
-                  maxLength: 128,
-                }}
-              />
-              <Box>
-                <LoadingButton variant={"contained"} onClick={submitResetPassword} loading={resetLoading}>
-                  <span>{t("fileManager.save")}</span>
-                </LoadingButton>
-              </Box>
-            </Stack>
-          </form>
-        </Collapse>
+      <SettingForm title={t("openid.associations")}>
+        <OpenIDAssociations setting={setting} setSetting={setSetting} />
       </SettingForm>
+      {(!setting.credential_capabilities ||
+        setting.credential_capabilities.password_update ||
+        setting.credential_capabilities.password_reset) && (
+        <SettingForm title={t("login.password")} lgWidth={5}>
+          {setting.passwordless && (
+            <SecondaryButton onClick={() => navigate("/session/reset")}>{t("login.resetPassword")}</SecondaryButton>
+          )}
+          <Collapse in={!showResetPassword && !setting.passwordless}>
+            <SecondaryButton
+              sx={{ mt: 1 }}
+              onClick={() => setShowResetPassword(true)}
+              variant={"contained"}
+              startIcon={<Edit />}
+            >
+              {t("login.resetPassword")}
+            </SecondaryButton>
+          </Collapse>
+          <Collapse in={showResetPassword && !setting.passwordless} sx={{ mt: 2 }} unmountOnExit>
+            <form ref={resetPwdFormRef}>
+              <Stack spacing={2}>
+                <DenseFilledTextField
+                  required
+                  label={t("setting.originalPassword")}
+                  fullWidth
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  inputProps={{
+                    type: "password",
+                    minLength: 4,
+                    maxLength: 64,
+                  }}
+                />
+                <DenseFilledTextField
+                  required
+                  label={t("login.newPassword")}
+                  fullWidth
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  inputProps={{
+                    type: "password",
+                    minLength: 6,
+                    maxLength: 128,
+                  }}
+                />
+                <DenseFilledTextField
+                  required
+                  label={t("login.repeatPassword")}
+                  fullWidth
+                  value={repeatPassword}
+                  onChange={(e) => setRepeatPassword(e.target.value)}
+                  inputProps={{
+                    type: "password",
+                    minLength: 6,
+                    maxLength: 128,
+                  }}
+                />
+                <Box>
+                  <LoadingButton variant={"contained"} onClick={submitResetPassword} loading={resetLoading}>
+                    <span>{t("fileManager.save")}</span>
+                  </LoadingButton>
+                </Box>
+              </Stack>
+            </form>
+          </Collapse>
+        </SettingForm>
+      )}
       <SettingForm
         title={
           <Box>

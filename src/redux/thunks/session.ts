@@ -69,7 +69,7 @@ export function signout(): AppThunk<void> {
       return;
     }
 
-    await longRunningTaskWithSnackbar(
+    const logoutURL = await longRunningTaskWithSnackbar(
       dispatch(sendSignout({ refresh_token: current.token.refresh_token })),
       "application:login.signingOut",
     );
@@ -77,6 +77,7 @@ export function signout(): AppThunk<void> {
     router.navigate("/session");
     dispatch(closeMusicPlayer());
     SessionManager.signOutCurrent();
+    if (typeof logoutURL === "string" && /^https?:\/\//.test(logoutURL)) window.location.assign(logoutURL);
   };
 }
 

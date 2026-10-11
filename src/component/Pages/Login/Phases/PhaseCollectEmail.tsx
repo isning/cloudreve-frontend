@@ -1,3 +1,4 @@
+import OpenIDButtons from "../Signin/OpenIDButtons.tsx";
 import { Box, Divider, FormControl, Link, Stack } from "@mui/material";
 import { useEffect } from "react";
 import { Trans, useTranslation } from "react-i18next";
@@ -85,6 +86,7 @@ const PhaseCollectEmail = ({ email, setEmail, control, onOAuthPasskeyLogin }: Ph
       </FormControl>
       {control?.submit}
       {control?.back}
+      <OpenIDButtons hint={email} />
       {register_enabled && (
         <Box sx={{ mt: 2, typography: "body2", textAlign: "center" }}>
           <Trans

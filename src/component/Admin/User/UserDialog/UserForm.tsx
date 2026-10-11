@@ -1,3 +1,6 @@
+import { releaseManagedAccount } from "../../../../api/openid.ts";
+import { confirmOperation } from "../../../../redux/thunks/dialog.ts";
+import { Alert, Button } from "@mui/material";
 import { OpenInNew } from "@mui/icons-material";
 import {
   Box,
@@ -109,6 +112,33 @@ const UserForm = ({ reload, setLoading }: { reload: () => void; setLoading: (loa
 
   return (
     <Box component={"form"} ref={formRef} onSubmit={(e) => e.preventDefault()}>
+      {values.sso_managed && (
+        <Alert
+          severity="info"
+          sx={{ mb: 2 }}
+          action={
+            <Button
+              type="button"
+              onClick={async () => {
+                try {
+                  await dispatch(confirmOperation(t("application:openid.releaseConfirm")));
+                  setLoading(true);
+                  await dispatch(releaseManagedAccount(values.id));
+                  reload();
+                } catch {
+                  // Request errors are displayed by the existing request stack.
+                } finally {
+                  setLoading(false);
+                }
+              }}
+            >
+              {t("application:openid.release")}
+            </Button>
+          }
+        >
+          {t("application:openid.managed")}
+        </Alert>
+      )}
       <ProDialog open={proOpen} onClose={() => setProOpen(false)} />
       <Stack spacing={isMobile ? 2 : 3} direction={isMobile ? "column" : "row"}>
         <Stack spacing={isMobile ? 2 : 3} direction={"column"} sx={{ minWidth: 200 }}>
@@ -207,6 +237,7 @@ const UserForm = ({ reload, setLoading }: { reload: () => void; setLoading: (loa
                   },
                 }}
                 onChange={onPasswordChange}
+                disabled={values.sso_managed}
                 type={"password"}
               />
             </SettingForm>

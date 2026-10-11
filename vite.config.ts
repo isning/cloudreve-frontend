@@ -64,6 +64,7 @@ export default defineConfig({
   build: {
     outDir: "build", // keep same as v3 with minimal changes
     rollupOptions: {
+      // Keep shared dependencies out of editor chunks to avoid React initialization cycles.
       output: {
         manualChunks: (id) => {
           const chunkMap = {
@@ -76,7 +77,7 @@ export default defineConfig({
               "__vite-browser-external",
             ],
             monaco: ["monaco-editor"],
-            codemirror: ["@codemirror"],
+
             excalidraw: [
               "node_modules/@excalidraw",
               "node_modules/browser-fs-access",
@@ -85,7 +86,9 @@ export default defineConfig({
             ],
             mermaid: ["node_modules/mermaid", "node_modules/katex"],
             leaflet: ["node_modules/leaflet", "node_modules/react-leaflet"],
-            react: ["node_modules/react", "node_modules/react-dom"],
+            // React integrations share runtime dependencies with editor wrappers.
+            // Let Rollup keep them together so they initialize in dependency order.
+            react: ["node_modules/react/", "node_modules/react-dom/", "node_modules/scheduler/"],
             mapbox: ["node_modules/mapbox-gl"],
           };
 

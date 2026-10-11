@@ -181,6 +181,7 @@ const PasskeyList = (props: PasskeyProps) => {
         ))}
       </List>
       <SecondaryLoadingButton
+        disabled={props.setting.credential_capabilities?.passkey_register === false}
         sx={{ mt: 1 }}
         variant={"contained"}
         loading={loading}

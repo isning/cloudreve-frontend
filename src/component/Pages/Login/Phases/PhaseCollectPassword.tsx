@@ -1,3 +1,4 @@
+import OpenIDButtons from "../Signin/OpenIDButtons.tsx";
 import { Divider, FormControl, Link, Stack, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { LoginResponse, PrepareLoginResponse } from "../../../../api/user.ts";
@@ -85,6 +86,7 @@ const PhaseCollectPassword = ({
       <Stack spacing={1}>
         {loginOptions?.webauthn_enabled && authn && <PasskeyLoginButton onLoginSuccess={onOAuthPasskeyLogin} />}
       </Stack>
+      <OpenIDButtons hint={email} ids={loginOptions?.openid_providers ?? []} />
       {control?.back}
     </>
   );
