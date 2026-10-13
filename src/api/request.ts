@@ -133,6 +133,7 @@ export type ThunkResponse<T = any> = AppThunk<Promise<T>>;
 export const Code = {
   Success: 0,
   Continue: 203,
+  GroupNotAllowed: 40007,
   CredentialInvalid: 40020,
   IncorrectPassword: 40069,
   LockConflict: 40073,

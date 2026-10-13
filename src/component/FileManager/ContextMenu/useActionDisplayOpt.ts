@@ -337,9 +337,10 @@ export const getActionOpt = (
 };
 
 const useActionDisplayOpt = (targets: FileResponse[], type?: string, parent?: FileResponse, fmIndex: number = 0) => {
+  const permission = SessionManager.currentUserGroup()?.permission;
   const opt = useMemo(() => {
     return getActionOpt(targets, Viewers, type, parent, fmIndex);
-  }, [targets, type, parent, fmIndex]);
+  }, [targets, type, parent, fmIndex, permission]);
 
   return opt;
 };

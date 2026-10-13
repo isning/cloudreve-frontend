@@ -12,6 +12,9 @@ import { useSnackbar } from "notistack";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getAvailableStoragePolicies, sendRelocate } from "../../../api/api.ts";
+import { AppError, Code } from "../../../api/request.ts";
+import { GroupPermission } from "../../../api/user.ts";
+import { refreshFileList } from "../../../redux/thunks/filemanager.ts";
 import { StoragePolicy } from "../../../api/explorer.ts";
 import { setRelocateDialog } from "../../../redux/globalStateSlice.ts";
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks.ts";
@@ -24,6 +27,7 @@ const Relocate = () => {
   const { enqueueSnackbar } = useSnackbar();
   const target = useAppSelector((state) => state.globalState.relocateDialog);
   const owner = SessionManager.currentLoginOrNull()?.user.id;
+  const authorized = SessionManager.currentUserGroupPermission().enabled(GroupPermission.relocate);
   const [policies, setPolicies] = useState<StoragePolicy[]>([]);
   const [selected, setSelected] = useState("");
   const [loading, setLoading] = useState(false);
@@ -48,7 +52,8 @@ const Relocate = () => {
     };
   }, [target, owner, dispatch]);
   const save = async () => {
-    if (!target || target.owner !== owner || !selected || !policies.some((p) => p.id === selected)) return;
+    if (!target || target.owner !== owner || !authorized || !selected || !policies.some((p) => p.id === selected))
+      return;
     const sources = target.files.map((file) => {
       const uri = new URL(file.path!);
       uri.username = target.owner;
@@ -60,7 +65,14 @@ const Relocate = () => {
       if (SessionManager.currentLoginOrNull()?.user.id !== target.owner) return;
       close();
       enqueueSnackbar({ message: t("fileManager.relocateTaskAccepted"), variant: "success", action: ViewTaskAction() });
-    } catch {
+    } catch (error) {
+      if (
+        error instanceof AppError &&
+        error.code === Code.GroupNotAllowed &&
+        SessionManager.currentLoginOrNull()?.user.id === target.owner
+      ) {
+        await dispatch(refreshFileList(target.index));
+      }
       /* Native request handling displays the error and preserves this choice. */
     } finally {
       setSaving(false);
@@ -103,7 +115,7 @@ const Relocate = () => {
         <Button disabled={saving} onClick={close}>
           {t("cancel", { ns: "common" })}
         </Button>
-        <Button disabled={loading || saving || !selected} onClick={save}>
+        <Button disabled={loading || saving || !selected || !authorized} onClick={save}>
           {t("fileManager.startStorageMigration")}
         </Button>
       </DialogActions>
