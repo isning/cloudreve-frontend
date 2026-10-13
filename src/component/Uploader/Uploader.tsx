@@ -63,6 +63,7 @@ const Uploader = () => {
   const parent = useAppSelector((state) => state.fileManager[FileManagerIndex.main].list?.parent);
   const path = useAppSelector((state) => state.fileManager[FileManagerIndex.main].pure_path);
   const policy = useAppSelector((state) => state.fileManager[FileManagerIndex.main].list?.storage_policy);
+  const automaticDestination = policies.find((p) => p.id === policy?.id) ?? policies[0];
   const selectFileSignal = useAppSelector((state) => state.globalState.uploadFileSignal);
   const selectFolderSignal = useAppSelector((state) => state.globalState.uploadFolderSignal);
   const uploadRawPromiseId = useAppSelector((state) => state.globalState.uploadRawPromiseId);
@@ -338,6 +339,11 @@ const Uploader = () => {
             label={t("uploader.storagePolicy")}
             SelectProps={{ displayEmpty: true }}
             InputLabelProps={{ shrink: true }}
+            helperText={
+              !choiceID && automaticDestination
+                ? t("uploader.automaticPolicyDestination", { name: automaticDestination.name })
+                : undefined
+            }
             value={choiceID}
             disabled={loadingPolicies || !policies.length}
             onChange={(event) => setChoice({ owner: ownerID, id: event.target.value })}

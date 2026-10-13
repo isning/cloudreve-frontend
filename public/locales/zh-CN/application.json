@@ -697,6 +697,7 @@
     "concurrentTaskNumber": "同时上传的任务数量",
     "dropFileHere": "松开鼠标开始上传",
     "automaticPolicy": "自动选择",
+    "automaticPolicyDestination": "当前目录的自动目的地：{{name}}",
     "noAvailablePolicies": "没有可用存储策略",
     "chooseFiles": "选择文件"
   },

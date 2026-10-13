@@ -697,6 +697,7 @@
     "concurrentTaskNumber": "Concurrent task limit",
     "dropFileHere": "Drop file to upload",
     "automaticPolicy": "Automatic",
+    "automaticPolicyDestination": "Current folder destination: {{name}}",
     "noAvailablePolicies": "No available storage policies",
     "chooseFiles": "Choose files"
   },
