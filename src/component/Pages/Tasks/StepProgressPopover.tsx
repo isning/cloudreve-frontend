@@ -14,6 +14,9 @@ export interface StepProgressPopoverProps extends PopoverProps {
 
 export const ProgressKeys = {
   relocate: "relocate",
+  relocate_count: "relocate_count",
+  relocate_size: "relocate_size",
+  relocate_failed: "relocate_failed",
   upload: "upload",
   upload_single_: "upload_single_",
   archive_count: "archive_count",
@@ -29,11 +32,23 @@ export const ProgressKeys = {
 
 const ProgressBar = ({ pkey, p }: { pkey: string; p: TaskProgress }) => {
   const { t } = useTranslation();
-  if (pkey == ProgressKeys.relocate) {
+  if (pkey == ProgressKeys.relocate || pkey == ProgressKeys.relocate_count || pkey == ProgressKeys.relocate_failed) {
     return (
       <StepProgressBar
-        title={t("setting.relocatedEntities")}
+        title={t(
+          pkey === ProgressKeys.relocate_failed ? "setting.failedMigrationEntities" : "setting.relocatedEntities",
+        )}
         secondary={`${p.current} / ${p.total}`}
+        progress={(100 * p.current) / Math.max(p.total, 1)}
+      />
+    );
+  }
+
+  if (pkey === ProgressKeys.relocate_size) {
+    return (
+      <StepProgressBar
+        title={t("setting.relocatedBytes")}
+        secondary={`${sizeToString(p.current)} / ${sizeToString(p.total)}`}
         progress={(100 * p.current) / Math.max(p.total, 1)}
       />
     );

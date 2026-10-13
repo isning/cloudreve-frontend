@@ -795,6 +795,12 @@
     "unknownSize": "Unknown file size"
   },
   "setting": {
+    "relocatedEntities": "Completed entities",
+    "relocatedBytes": "Copied bytes",
+    "failedMigrationEntities": "Unsuccessful entities",
+    "transferringRelocateDes": "Copy and verify stored bytes before switching references.",
+    "relocateFinishing": "Preserve file identity and future upload preferences.",
+    "migrationPartialFailure": "Completed {{completed}}; failed or unprocessed {{failed}}. Committed content stays available.",
     "treeView": "Tree view",
     "autoExpandTreeView": "Auto expand tree view",
     "autoExpandTreeViewDes": "When enabled, the file tree in the sidebar will follow the current directory and expand automatically.",

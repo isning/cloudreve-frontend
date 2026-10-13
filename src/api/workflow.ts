@@ -37,6 +37,11 @@ export interface TaskSummary {
     src_multiple?: string[];
     dst_policy_id?: string;
     dst_policy_name?: string;
+    entities_total?: number;
+    entities_completed?: number;
+    entities_failed?: number;
+    bytes_total?: number;
+    bytes_copied?: number;
     failed?: number;
     total?: number;
     download?: DownloadTaskStatus;

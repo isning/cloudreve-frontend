@@ -795,6 +795,12 @@
     "unknownSize": "未知文件大小"
   },
   "setting": {
+    "relocatedEntities": "已迁移实体",
+    "relocatedBytes": "已复制字节",
+    "failedMigrationEntities": "未成功实体",
+    "transferringRelocateDes": "复制并校验存储字节后切换引用。",
+    "relocateFinishing": "保留文件身份及后续上传偏好。",
+    "migrationPartialFailure": "已完成 {{completed}}；失败或未处理 {{failed}}。已提交的内容仍可访问。",
     "treeView": "树视图",
     "autoExpandTreeView": "自动展开树视图",
     "autoExpandTreeViewDes": "开启后，侧边栏的文件树会跟随当前目录并自动展开",

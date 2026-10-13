@@ -97,18 +97,18 @@ const stepOptions: {
       queueingStep,
       {
         title: "setting.indexingFiles",
-        state: "",
+        state: "planning",
         description: "setting.indexingFilesDes",
       },
       {
         title: "setting.transferring",
-        state: "transfer",
+        state: "transferring",
         description: "setting.transferringRelocateDes",
         supportProgress: true,
       },
       {
         title: "setting.committingChanges",
-        state: "finish",
+        state: "completed",
         description: "setting.relocateFinishing",
       },
     ],
@@ -220,7 +220,7 @@ const TaskProgress = ({ taskId, taskStatus, taskType, summary, node }: TaskProgr
   const [activeStep, setActiveStep] = useState(0);
   const steps = useMemo((): StepModel[] => {
     return stepOptions[taskType]?.[node?.type == NodeTypes.slave ? 1 : 0] ?? [];
-  }, [taskId, node?.type]);
+  }, [taskId, taskType, node?.type]);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
@@ -233,15 +233,21 @@ const TaskProgress = ({ taskId, taskStatus, taskType, summary, node }: TaskProgr
       setActiveStep(steps.length);
       return;
     }
+    let phase = summary?.phase;
+    if (taskType === TaskType.relocate) {
+      if (phase === "transfer") phase = "transferring";
+      if (phase === "finish") phase = "completed";
+      if (phase === "failed") phase = (summary?.props.entities_total ?? 0) > 0 ? "transferring" : "planning";
+    }
     let active = 1;
     for (let i = 1; i < steps.length; i++) {
-      if (steps[i].state == summary?.phase) {
+      if (steps[i].state == phase) {
         active = i;
       }
     }
 
     setActiveStep(active);
-  }, [steps, taskStatus, summary?.phase]);
+  }, [steps, taskType, taskStatus, summary?.phase, summary?.props.entities_total]);
 
   return (
     <Box sx={{ p: 2 }}>
