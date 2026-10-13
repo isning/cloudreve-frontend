@@ -459,6 +459,7 @@
     "relocateStoragePolicy": "迁移存储策略",
     "relocateStoragePolicyDescription": "将已有内容迁移至另一存储策略，不修改后续上传偏好。",
     "relocateTaskAccepted": "迁移任务已受理，可在后台任务中查看进度。",
+    "unavailableStorageDestination": "当前不可选的策略（{{id}}）",
     "chooseStorageDestination": "选择迁移目的地",
     "startStorageMigration": "创建迁移任务"
   },

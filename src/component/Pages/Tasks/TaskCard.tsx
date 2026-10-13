@@ -16,7 +16,7 @@ import MuiAccordionSummary, { AccordionSummaryProps } from "@mui/material/Accord
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useInView } from "react-intersection-observer";
-import { FileType } from "../../../api/explorer.ts";
+import { FileType, StoragePolicy } from "../../../api/explorer.ts";
 import { TaskResponse, TaskType } from "../../../api/workflow.ts";
 import { useAppDispatch } from "../../../redux/hooks.ts";
 import { DefaultButton } from "../../Common/StyledComponents.tsx";
@@ -95,6 +95,7 @@ export interface TaskCardProps {
   loading?: boolean;
   showProgress?: boolean;
   task?: TaskResponse;
+  relocationPolicies?: StoragePolicy[];
   onLoad?: () => void;
 }
 
@@ -107,7 +108,7 @@ const taskIconsMap: {
   [TaskType.import]: ArrowImport,
 };
 
-const TaskCard = ({ loading, showProgress, onLoad, task }: TaskCardProps) => {
+const TaskCard = ({ loading, showProgress, onLoad, task, relocationPolicies }: TaskCardProps) => {
   const { t } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -193,7 +194,7 @@ const TaskCard = ({ loading, showProgress, onLoad, task }: TaskCardProps) => {
                 <Skeleton variant={"text"} width={150} />
               ) : (
                 <Box component={"span"} sx={{ verticalAlign: "sub" }}>
-                  <TaskSummaryTitle type={task.type} summary={task.summary} />
+                  <TaskSummaryTitle type={task.type} summary={task.summary} relocationPolicies={relocationPolicies} />
                 </Box>
               )}
             </Typography>
