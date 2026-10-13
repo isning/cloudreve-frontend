@@ -282,15 +282,20 @@ export const getActionOpt = (
     targets.length == 1 && display.hasFile && targets[0].metadata && !!targets[0].metadata[Metadata.share_redirect];
   display.showInfo = targets.length == 1 && display.orCapability && canShowInfo(display.orCapability);
   display.showRelocate =
-    targets.length === 1 &&
+    targets.length > 0 &&
     !!currentUser &&
     groupBs.enabled(GroupPermission.relocate) &&
-    targets[0].owned &&
-    targets[0].type === FileType.file &&
-    !!targets[0].path &&
-    !targets[0].metadata?.[Metadata.share_redirect] &&
-    new CrUri(targets[0].path).fs() === Filesystem.my &&
-    display.andCapability?.enabled(NavigatorCapability.relocate);
+    targets.every(
+      (file) =>
+        file.owned &&
+        (file.type === FileType.file || file.type === FileType.folder) &&
+        !!file.path &&
+        !file.metadata?.[Metadata.share_redirect] &&
+        !file.metadata?.[Metadata.restore_uri] &&
+        new CrUri(file.path).fs() === Filesystem.my &&
+        !!file.capability &&
+        new Boolset(file.capability).enabled(NavigatorCapability.relocate),
+    );
   display.showBindPolicy =
     targets.length === 1 &&
     !!currentUser &&
