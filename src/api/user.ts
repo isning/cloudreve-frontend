@@ -91,6 +91,7 @@ export const GroupPermission = {
   webdav_proxy: 6,
   share_download: 7,
   remote_download: 9,
+  relocate: 10,
   redirected_source: 11,
   advance_delete: 12,
   unique_direct_link: 17,
