@@ -277,6 +277,7 @@ export const NavigatorCapability = {
   share: 18,
   info: 19,
   version_control: 20,
+  bind_policy: 21,
   enter_folder: 23,
 };
 

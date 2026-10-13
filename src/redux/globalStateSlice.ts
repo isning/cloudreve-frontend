@@ -150,6 +150,7 @@ export interface GlobalStateSlice {
   // Version control dialog
   versionControlDialogOpen?: boolean;
   versionControlDialogFile?: FileResponse;
+  bindPolicyDialog?: { file: FileResponse; index: number; owner: string };
   versionControlHighlight?: string;
 
   // Manage share link dialog
@@ -398,6 +399,7 @@ export const globalStateSlice = createSlice({
       state.policyOptionCache = action.payload;
     },
     resetDialogs: (state) => {
+      state.bindPolicyDialog = undefined;
       state.aggregatedErrorDialogOpen = state.aggregatedErrorDialogOpen ? false : undefined;
       state.pathSelectDialogOpen = state.pathSelectDialogOpen ? false : undefined;
       state.tagsDialogOpen = state.tagsDialogOpen ? false : undefined;
@@ -764,6 +766,12 @@ export const globalStateSlice = createSlice({
     closeVersionControlDialog: (state) => {
       state.versionControlDialogOpen = false;
     },
+    setBindPolicyDialog: (
+      state,
+      action: PayloadAction<{ file: FileResponse; index: number; owner: string } | undefined>,
+    ) => {
+      state.bindPolicyDialog = action.payload;
+    },
     setManageShareDialog: (state, action: PayloadAction<{ open: boolean; file: FileResponse }>) => {
       state.manageShareDialogOpen = action.payload.open;
       state.manageShareDialogFile = action.payload.file;
@@ -899,6 +907,7 @@ export const {
   setManageShareDialog,
   closeManageShareDialog,
   setVersionControlDialog,
+  setBindPolicyDialog,
   closeVersionControlDialog,
   closeSidebar,
   setSidebar,

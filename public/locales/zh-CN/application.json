@@ -453,7 +453,9 @@
     "noEncryption": "未加密",
     "ftsStatus": "全文索引",
     "ftsIndexed": "已索引",
-    "ftsNotIndexed": "未索引"
+    "ftsNotIndexed": "未索引",
+    "bindStoragePolicy": "绑定存储策略",
+    "bindStoragePolicyDescription": "新上传使用此策略，已有内容保留当前位置。"
   },
   "modals": {
     "includePasswordInShareLink": "在链接中包含密码",

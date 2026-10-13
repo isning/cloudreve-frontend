@@ -453,7 +453,9 @@
     "noEncryption": "Not encrypted",
     "ftsStatus": "Full-text index",
     "ftsIndexed": "Indexed",
-    "ftsNotIndexed": "Not indexed"
+    "ftsNotIndexed": "Not indexed",
+    "bindStoragePolicy": "Bind storage policy",
+    "bindStoragePolicyDescription": "New uploads use this policy. Existing content keeps its current location."
   },
   "modals": {
     "includePasswordInShareLink": "Include password in share link",

@@ -79,6 +79,7 @@ export interface DisplayOption {
   showManageShares?: boolean;
   showCreateArchive?: boolean;
   showResetThumb?: boolean;
+  showBindPolicy?: boolean;
 
   andCapability?: Boolset;
   orCapability?: Boolset;
@@ -279,6 +280,16 @@ export const getActionOpt = (
   display.showGoToSharedLink =
     targets.length == 1 && display.hasFile && targets[0].metadata && !!targets[0].metadata[Metadata.share_redirect];
   display.showInfo = targets.length == 1 && display.orCapability && canShowInfo(display.orCapability);
+  display.showBindPolicy =
+    targets.length === 1 &&
+    !!currentUser &&
+    targets[0].owned &&
+    targets[0].type === FileType.folder &&
+    !!targets[0].path &&
+    !targets[0].metadata?.[Metadata.share_redirect] &&
+    new CrUri(targets[0].path).fs() === Filesystem.my &&
+    !new CrUri(targets[0].path).is_root() &&
+    display.orCapability?.enabled(NavigatorCapability.bind_policy);
   display.showVersionControl =
     targets.length == 1 &&
     display.orCapability &&

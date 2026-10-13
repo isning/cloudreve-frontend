@@ -2,7 +2,8 @@ import { Box, Divider, ListItemIcon, ListItemText, Menu, MenuItem, styled, Typog
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { closeContextMenu } from "../../../redux/fileManagerSlice.ts";
-import { CreateNewDialogType } from "../../../redux/globalStateSlice.ts";
+import { CreateNewDialogType, setBindPolicyDialog } from "../../../redux/globalStateSlice.ts";
+import SessionManager from "../../../session";
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks.ts";
 import { downloadFiles } from "../../../redux/thunks/download.ts";
 import {
@@ -125,6 +126,7 @@ const ContextMenu = ({ fmIndex = 0 }: ContextMenuProps) => {
     displayOpt.showShare ||
     displayOpt.showRename ||
     displayOpt.showCopy ||
+    displayOpt.showBindPolicy ||
     displayOpt.showDirectLink;
   let part3 =
     displayOpt.showTags || displayOpt.showOrganize || displayOpt.showMore || displayOpt.showNewFileFromTemplate;
@@ -231,6 +233,25 @@ const ContextMenu = ({ fmIndex = 0 }: ContextMenuProps) => {
 
   const part2Elements = part2 ? (
     <>
+      {displayOpt.showBindPolicy && (
+        <SquareMenuItem
+          onClick={() => {
+            dispatch(
+              setBindPolicyDialog({
+                file: targets[0],
+                index: fmIndex,
+                owner: SessionManager.currentLoginOrNull()?.user.id ?? "",
+              }),
+            );
+            onClose();
+          }}
+        >
+          <ListItemIcon>
+            <FolderOutlined fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>{t("application:fileManager.bindStoragePolicy")}</ListItemText>
+        </SquareMenuItem>
+      )}
       {displayOpt.showCreateFolder && (
         <SquareMenuItem onClick={() => dispatch(createNew(fmIndex, CreateNewDialogType.folder))}>
           <ListItemIcon>

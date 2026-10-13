@@ -1092,6 +1092,11 @@ export function getAvailableStoragePolicies(): ThunkResponse<StoragePolicy[]> {
   };
 }
 
+export function bindStoragePolicy(uri: string, policy_id: string): ThunkResponse<void> {
+  return async (dispatch) =>
+    dispatch(send("/file/policy", { method: "PATCH", data: { uri, policy_id } }, { ...defaultOpts }));
+}
+
 export function sendUploadAvatar(avatar?: Blob, contentType?: string): ThunkResponse {
   return async (dispatch, _getState) => {
     return await dispatch(
