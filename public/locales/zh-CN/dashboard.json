@@ -1230,7 +1230,7 @@
     "nameOfGroup": "用户组名",
     "nameOfGroupDes": "用户组的名称，用于向用户展示。",
     "availablePolicies": "可用存储策略",
-    "availablePoliciesDes": "指定用户组可用的存储策略，修改此设置不会影响用户已上传的文件。",
+    "availablePoliciesDes": "选择用户组可使用的存储策略，第一项是自动选择的默认策略。",
     "availablePolicyDesPro": "可多选，用户可在选定范围内自由切换存储策略。",
     "initialStorageQuota": "初始容量",
     "initialStorageQuotaDes": "用户组下的用户初始可用最大容量。",
@@ -1302,7 +1302,8 @@
     "notCopy": "不复制",
     "confirmDelete": "确认要删除用户组 {{group}}？",
     "new": "新建用户组",
-    "editGroup": "编辑 {{group}}"
+    "editGroup": "编辑 {{group}}",
+    "defaultPolicy": "默认"
   },
   "user": {
     "createdAt": "创建日期",

@@ -7,14 +7,14 @@ import Boolset from "../../../../util/boolset";
 import SizeInput from "../../../Common/SizeInput";
 import { DenseFilledTextField } from "../../../Common/StyledComponents";
 import InPrivate from "../../../Icons/InPrivate";
-import SettingForm, { ProChip } from "../../../Pages/Setting/SettingForm";
+import SettingForm from "../../../Pages/Setting/SettingForm";
 import { NoMarginHelperText, SettingSection, SettingSectionContent } from "../../Settings/Settings";
 import { AnonymousGroupID } from "../GroupRow";
 import { GroupSettingContext } from "./GroupSettingWrapper";
 import PolicySelectionInput from "./PolicySelectionInput";
 const BasicInfoSection = () => {
   const { t } = useTranslation("dashboard");
-  const { values, setGroup } = useContext(GroupSettingContext);
+  const { values, setGroup, policyIds, setPolicyIds } = useContext(GroupSettingContext);
 
   const permission = useMemo(() => {
     return new Boolset(values.permissions ?? "");
@@ -28,13 +28,14 @@ const BasicInfoSection = () => {
   );
 
   const onPolicyChange = useCallback(
-    (value: number) => {
+    (value: number[]) => {
+      setPolicyIds(value);
       setGroup((p: GroupEnt) => ({
         ...p,
-        edges: { ...p.edges, storage_policies: { id: value } as StoragePolicy },
+        edges: { ...p.edges, storage_policies: { id: value[0] ?? 0 } as StoragePolicy },
       }));
     },
-    [setGroup],
+    [setGroup, setPolicyIds],
   );
 
   const onMaxStorageChange = useCallback(
@@ -79,11 +80,8 @@ const BasicInfoSection = () => {
         {values?.id != AnonymousGroupID && (
           <>
             <SettingForm title={t("group.availablePolicies")} lgWidth={5}>
-              <PolicySelectionInput value={values.edges.storage_policies?.id ?? 0} onChange={onPolicyChange} />
+              <PolicySelectionInput value={policyIds} onChange={onPolicyChange} />
               <NoMarginHelperText>{t("group.availablePoliciesDes")}</NoMarginHelperText>
-              <NoMarginHelperText>
-                <ProChip size="small" label="Pro" sx={{ ml: 0 }} /> {t("group.availablePolicyDesPro")}
-              </NoMarginHelperText>
             </SettingForm>
             <SettingForm title={t("group.initialStorageQuota")} lgWidth={5}>
               <FormControl fullWidth>

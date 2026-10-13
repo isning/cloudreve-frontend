@@ -8,8 +8,8 @@ import FacebookCircularProgress from "../../../Common/CircularProgress";
 import { DenseSelect, SquareChip } from "../../../Common/StyledComponents";
 import { SquareMenuItem } from "../../../FileManager/ContextMenu/ContextMenu";
 export interface PolicySelectionInputProps {
-  value: number;
-  onChange: (value: number) => void;
+  value: number[];
+  onChange: (value: number[]) => void;
 }
 
 const PolicySelectionInput = ({ value, onChange }: PolicySelectionInputProps) => {
@@ -23,7 +23,7 @@ const PolicySelectionInput = ({ value, onChange }: PolicySelectionInputProps) =>
     const {
       target: { value },
     } = event;
-    onChange(value as number);
+    onChange(typeof value === "string" ? value.split(",").map(Number) : (value as number[]));
   };
 
   useEffect(() => {
@@ -50,6 +50,8 @@ const PolicySelectionInput = ({ value, onChange }: PolicySelectionInputProps) =>
     <FormControl fullWidth>
       <DenseSelect
         value={value}
+        multiple
+        inputProps={{ "aria-label": t("group.availablePolicies") }}
         required
         onChange={handleChange}
         sx={{
@@ -66,10 +68,16 @@ const PolicySelectionInput = ({ value, onChange }: PolicySelectionInputProps) =>
             },
           },
         }}
-        renderValue={(selected: number) => (
+        renderValue={(selected) => (
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
             {!loading ? (
-              <SquareChip size="small" key={selected} label={policyMap[selected]?.name} />
+              (selected as number[]).map((id, index) => (
+                <SquareChip
+                  size="small"
+                  key={id}
+                  label={`${policyMap[id]?.name ?? `#${id}`}${index === 0 ? ` · ${t("group.defaultPolicy")}` : ""}`}
+                />
+              ))
             ) : (
               <FacebookCircularProgress size={20} sx={{ mt: "1px" }} />
             )}

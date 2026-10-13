@@ -18,6 +18,8 @@ export interface GroupSettingWrapperProps {
 export interface GroupSettingContextProps {
   values: GroupEnt;
   setGroup: (f: (p: GroupEnt) => GroupEnt) => void;
+  policyIds: number[];
+  setPolicyIds: (ids: number[]) => void;
   formRef?: React.RefObject<HTMLFormElement>;
 }
 
@@ -30,6 +32,8 @@ const defaultGroup: GroupEnt = {
 export const GroupSettingContext = createContext<GroupSettingContextProps>({
   values: { ...defaultGroup },
   setGroup: () => {},
+  policyIds: [],
+  setPolicyIds: () => {},
 });
 
 const groupValueFilter = (group: GroupEnt): GroupEnt => {
@@ -54,19 +58,28 @@ const GroupSettingWrapper = ({ groupID, children, onGroupChange }: GroupSettingW
   });
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [policyIds, setPolicyIds] = useState<number[]>([]);
+  const [modifiedPolicyIds, setModifiedPolicyIds] = useState<number[]>([]);
   const formRef = useRef<HTMLFormElement>(null);
 
   const showSaveButton = useMemo(() => {
-    return JSON.stringify(modifiedValues) !== JSON.stringify(values);
-  }, [modifiedValues, values]);
+    return (
+      JSON.stringify(modifiedValues) !== JSON.stringify(values) ||
+      JSON.stringify(modifiedPolicyIds) !== JSON.stringify(policyIds)
+    );
+  }, [modifiedValues, values, modifiedPolicyIds, policyIds]);
 
   useEffect(() => {
     setLoading(true);
     dispatch(getGroupDetail(groupID))
       .then((res) => {
-        setValues(groupValueFilter(res));
-        setModifiedValues(groupValueFilter(res));
-        onGroupChange(groupValueFilter(res));
+        const group = groupValueFilter(res.group ?? res);
+        const ids = res.policy_ids ?? (group.edges.storage_policies?.id ? [group.edges.storage_policies.id] : []);
+        setValues(group);
+        setModifiedValues(group);
+        setPolicyIds(ids);
+        setModifiedPolicyIds(ids);
+        onGroupChange(group);
       })
       .finally(() => {
         setLoading(false);
@@ -75,6 +88,7 @@ const GroupSettingWrapper = ({ groupID, children, onGroupChange }: GroupSettingW
 
   const revert = () => {
     setModifiedValues(values);
+    setModifiedPolicyIds(policyIds);
   };
 
   const submit = () => {
@@ -89,12 +103,17 @@ const GroupSettingWrapper = ({ groupID, children, onGroupChange }: GroupSettingW
     dispatch(
       upsertGroup({
         group: { ...modifiedValues },
+        policy_ids: modifiedPolicyIds.length ? modifiedPolicyIds : undefined,
       }),
     )
       .then((res) => {
-        setValues(groupValueFilter(res));
-        setModifiedValues(groupValueFilter(res));
-        onGroupChange(groupValueFilter(res));
+        const group = groupValueFilter(res.group ?? res);
+        const ids = res.policy_ids ?? (group.edges.storage_policies?.id ? [group.edges.storage_policies.id] : []);
+        setValues(group);
+        setModifiedValues(group);
+        setPolicyIds(ids);
+        setModifiedPolicyIds(ids);
+        onGroupChange(group);
       })
       .finally(() => {
         setSubmitting(false);
@@ -106,6 +125,8 @@ const GroupSettingWrapper = ({ groupID, children, onGroupChange }: GroupSettingW
       value={{
         values: modifiedValues,
         setGroup: setModifiedValues,
+        policyIds: modifiedPolicyIds,
+        setPolicyIds: setModifiedPolicyIds,
         formRef,
       }}
     >

@@ -37,6 +37,7 @@ import {
   ThumbGeneratorTestService,
   UpsertFileService,
   UpsertGroupService,
+  GetGroupResponse,
   UpsertNodeService,
   UpsertOAuthClientService,
   UpsertStoragePolicyService,
@@ -1627,7 +1628,7 @@ export function deleteStoragePolicy(id: number): ThunkResponse<void> {
   };
 }
 
-export function getGroupDetail(id: number, countUser?: boolean): ThunkResponse<GroupEnt> {
+export function getGroupDetail(id: number, countUser?: boolean): ThunkResponse<GetGroupResponse> {
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
@@ -1641,7 +1642,7 @@ export function getGroupDetail(id: number, countUser?: boolean): ThunkResponse<G
   };
 }
 
-export function upsertGroup(args: UpsertGroupService): ThunkResponse<GroupEnt> {
+export function upsertGroup(args: UpsertGroupService): ThunkResponse<GetGroupResponse> {
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
