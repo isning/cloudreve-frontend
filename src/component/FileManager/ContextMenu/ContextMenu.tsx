@@ -237,7 +237,7 @@ const ContextMenu = ({ fmIndex = 0 }: ContextMenuProps) => {
       {displayOpt.showRelocate && (
         <SquareMenuItem
           onClick={() => {
-            dispatch(setRelocateDialog({ files: targets, index: fmIndex, owner: SessionManager.currentLoginOrNull()?.user.id ?? "" }));
+            dispatch(setRelocateDialog({ files: targets.length ? targets : [parent!], index: fmIndex, owner: SessionManager.currentLoginOrNull()?.user.id ?? "" }));
             onClose();
           }}
         >

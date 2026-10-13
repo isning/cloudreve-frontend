@@ -18,6 +18,7 @@ import { refreshFileList } from "../../../redux/thunks/filemanager.ts";
 import { StoragePolicy } from "../../../api/explorer.ts";
 import { setRelocateDialog } from "../../../redux/globalStateSlice.ts";
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks.ts";
+import CrUri from "../../../util/uri.ts";
 import SessionManager from "../../../session";
 import { ViewTaskAction } from "../../Common/Snackbar/snackbar.tsx";
 
@@ -83,7 +84,11 @@ const Relocate = () => {
       <DialogTitle>{t("fileManager.relocateStoragePolicy")}</DialogTitle>
       <DialogContent>
         <Typography variant="body2" color="text.secondary">
-          {t("fileManager.relocateStoragePolicyDescription")}
+          {t(
+            target?.files.some((file) => file.path && new CrUri(file.path).is_root())
+              ? "fileManager.relocatePersonalRootDescription"
+              : "fileManager.relocateStoragePolicyDescription",
+          )}
         </Typography>
         <TextField
           select

@@ -52,7 +52,7 @@ const TopActionsSecondary = () => {
           </ActionButton>
         </Tooltip>
         {fmIndex == FileManagerIndex.main && (
-          <ActionButton {...bindTrigger(morePopupState)}>
+          <ActionButton aria-label={t("application:fileManager.moreActions")} {...bindTrigger(morePopupState)}>
             <MoreHorizontal fontSize={"small"} />
           </ActionButton>
         )}

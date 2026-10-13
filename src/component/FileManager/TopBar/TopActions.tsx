@@ -66,7 +66,7 @@ const TopActions = () => {
           </ActionButton>
         )}
         {isMobile && (
-          <ActionButton {...bindTrigger(morePopupState)}>
+          <ActionButton aria-label={t("application:fileManager.moreActions")} {...bindTrigger(morePopupState)}>
             <MoreHorizontal fontSize={"small"} />
           </ActionButton>
         )}

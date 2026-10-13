@@ -118,6 +118,21 @@ export const getActionOpt = (
       return display;
     }
 
+    const parentUri = parent.path ? new CrUri(parent.path) : undefined;
+    display.showRelocate =
+      type === ContextMenuTypes.empty &&
+      fmIndex === FileManagerIndex.main &&
+      !!currentUser &&
+      groupBs.enabled(GroupPermission.relocate) &&
+      parent.owned &&
+      !!parent.capability &&
+      new Boolset(parent.capability).enabled(NavigatorCapability.relocate) &&
+      !parent.metadata?.[Metadata.share_redirect] &&
+      !parent.metadata?.[Metadata.restore_uri] &&
+      parentUri?.fs() === Filesystem.my &&
+      parentUri.is_root() &&
+      !parentUri.is_search() &&
+      (!parentUri.id() || parentUri.id() === currentUser.user.id);
     const parentCap = new Boolset(parent.capability);
     display.showCreateFolder = parentCap.enabled(NavigatorCapability.create_file) && parent.owned;
     display.showCreateFile = display.showCreateFolder && fmIndex == FileManagerIndex.main;
