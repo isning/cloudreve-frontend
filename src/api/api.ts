@@ -109,6 +109,7 @@ import {
   ImportWorkflowService,
   ListTaskService,
   RebuildFTSIndexWorkflowService,
+  RelocateWorkflowService,
   SetDownloadFilesService,
   TaskListResponse,
   TaskProgresses,
@@ -822,6 +823,10 @@ export function sendOneDriveCompleteUpload(sessionId: string, sessionKey: string
       ),
     );
   };
+}
+
+export function sendRelocate(req: RelocateWorkflowService): ThunkResponse<TaskResponse> {
+  return async (dispatch) => dispatch(send("/workflow/reloacte", { method: "POST", data: req }, { ...defaultOpts }));
 }
 
 export function sendCreateArchive(req: ArchiveWorkflowService): ThunkResponse<TaskResponse> {

@@ -278,6 +278,7 @@ export const NavigatorCapability = {
   info: 19,
   version_control: 20,
   bind_policy: 21,
+  relocate: 22,
   enter_folder: 23,
 };
 

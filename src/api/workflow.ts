@@ -36,6 +36,7 @@ export interface TaskSummary {
     dst?: string;
     src_multiple?: string[];
     dst_policy_id?: string;
+    dst_policy_name?: string;
     failed?: number;
     total?: number;
     download?: DownloadTaskStatus;
@@ -89,7 +90,7 @@ export const NodeCapability = {
   create_archive: 1,
   extract_archive: 2,
   remote_download: 3,
-  //relocate: 4,
+  relocate: 4,
 };
 
 export interface RelocateWorkflowService {
@@ -127,6 +128,7 @@ export enum ListTaskCategory {
 export enum TaskType {
   create_archive = "create_archive",
   extract_archive = "extract_archive",
+  relocate = "relocate",
   remote_download = "remote_download",
   media_metadata = "media_meta",
   entity_recycle_routine = "entity_recycle_routine",

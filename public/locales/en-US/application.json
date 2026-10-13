@@ -455,7 +455,12 @@
     "ftsIndexed": "Indexed",
     "ftsNotIndexed": "Not indexed",
     "bindStoragePolicy": "Bind storage policy",
-    "bindStoragePolicyDescription": "New uploads use this policy. Existing content keeps its current location."
+    "bindStoragePolicyDescription": "New uploads use this policy. Existing content keeps its current location.",
+    "relocateStoragePolicy": "Relocate storage policy",
+    "relocateStoragePolicyDescription": "Move existing content to another storage policy. Future upload preferences remain unchanged.",
+    "relocateTaskAccepted": "Migration task accepted. Follow its progress in Background Tasks.",
+    "chooseStorageDestination": "Choose a storage destination",
+    "startStorageMigration": "Create migration task"
   },
   "modals": {
     "includePasswordInShareLink": "Include password in share link",

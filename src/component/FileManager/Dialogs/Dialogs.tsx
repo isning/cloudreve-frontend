@@ -8,6 +8,7 @@ import Tags from "./Tags.tsx";
 import ChangeIcon from "./ChangeIcon.tsx";
 import ShareDialog from "./Share/ShareDialog.tsx";
 import VersionControl from "./VersionControl.tsx";
+import Relocate from "./Relocate.tsx";
 import BindPolicy from "./BindPolicy.tsx";
 import ManageShares from "./Share/ManageShares.tsx";
 import StaleVersionConfirm from "./StaleVersionConfirm.tsx";
@@ -60,6 +61,7 @@ const Dialogs = () => {
       <ShareDialog />
       <VersionControl />
       <BindPolicy />
+      <Relocate />
       <ManageShares />
       <StaleVersionConfirm />
       <SaveAs />

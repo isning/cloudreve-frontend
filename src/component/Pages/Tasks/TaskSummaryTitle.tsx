@@ -88,6 +88,19 @@ const TaskSummaryTitle = ({ type, summary, isInDashboard = false }: TaskSummaryT
           }}
         />
       );
+    case TaskType.relocate:
+      return (
+        <Trans
+          i18nKey="setting.relocateFileTo"
+          values={{ policy: summary?.props.dst_policy_name ?? t("fileManager.storagePolicy"), more: "" }}
+          components={[
+            <StyledFileBadge
+              variant="outlined"
+              simplifiedFile={{ type: FileType.file, path: summary?.props.src_multiple?.[0] ?? newMyUri("").toString() }}
+            />,
+          ]}
+        />
+      );
     case TaskType.import:
       return (
         <Trans

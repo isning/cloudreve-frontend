@@ -80,6 +80,7 @@ export interface DisplayOption {
   showCreateArchive?: boolean;
   showResetThumb?: boolean;
   showBindPolicy?: boolean;
+  showRelocate?: boolean;
 
   andCapability?: Boolset;
   orCapability?: Boolset;
@@ -280,6 +281,16 @@ export const getActionOpt = (
   display.showGoToSharedLink =
     targets.length == 1 && display.hasFile && targets[0].metadata && !!targets[0].metadata[Metadata.share_redirect];
   display.showInfo = targets.length == 1 && display.orCapability && canShowInfo(display.orCapability);
+  display.showRelocate =
+    targets.length === 1 &&
+    !!currentUser &&
+    groupBs.enabled(GroupPermission.relocate) &&
+    targets[0].owned &&
+    targets[0].type === FileType.file &&
+    !!targets[0].path &&
+    !targets[0].metadata?.[Metadata.share_redirect] &&
+    new CrUri(targets[0].path).fs() === Filesystem.my &&
+    display.andCapability?.enabled(NavigatorCapability.relocate);
   display.showBindPolicy =
     targets.length === 1 &&
     !!currentUser &&
