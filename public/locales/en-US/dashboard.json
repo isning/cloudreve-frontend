@@ -1303,7 +1303,9 @@
     "confirmDelete": "Are you sure you want to delete group {{group}}?",
     "new": "New group",
     "editGroup": "Edit {{group}}",
-    "defaultPolicy": "Default"
+    "defaultPolicy": "Default",
+    "movePolicyUp": "Move {{name}} up",
+    "movePolicyDown": "Move {{name}} down"
   },
   "user": {
     "createdAt": "Created at",

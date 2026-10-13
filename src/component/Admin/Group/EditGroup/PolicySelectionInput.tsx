@@ -1,4 +1,5 @@
-import { Box, FormControl, SelectChangeEvent, Typography } from "@mui/material";
+import { ArrowDownward, ArrowUpward } from "@mui/icons-material";
+import { Box, FormControl, IconButton, SelectChangeEvent, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getStoragePolicyList } from "../../../../api/api";
@@ -24,6 +25,12 @@ const PolicySelectionInput = ({ value, onChange }: PolicySelectionInputProps) =>
       target: { value },
     } = event;
     onChange(typeof value === "string" ? value.split(",").map(Number) : (value as number[]));
+  };
+
+  const movePolicy = (index: number, offset: number) => {
+    const next = [...value];
+    [next[index], next[index + offset]] = [next[index + offset], next[index]];
+    onChange(next);
   };
 
   useEffect(() => {
@@ -103,6 +110,37 @@ const PolicySelectionInput = ({ value, onChange }: PolicySelectionInputProps) =>
             </SquareMenuItem>
           ))}
       </DenseSelect>
+      {value.length > 1 && (
+        <Box sx={{ mt: 1 }}>
+          {value.map((id, index) => {
+            const name = policyMap[id]?.name ?? `#${id}`;
+            return (
+              <Box key={id} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Typography variant="body2" sx={{ flex: 1 }}>
+                  {name}
+                  {index === 0 ? ` · ${t("group.defaultPolicy")}` : ""}
+                </Typography>
+                <IconButton
+                  size="small"
+                  disabled={loading || index === 0}
+                  aria-label={t("group.movePolicyUp", { name })}
+                  onClick={() => movePolicy(index, -1)}
+                >
+                  <ArrowUpward fontSize="small" />
+                </IconButton>
+                <IconButton
+                  size="small"
+                  disabled={loading || index === value.length - 1}
+                  aria-label={t("group.movePolicyDown", { name })}
+                  onClick={() => movePolicy(index, 1)}
+                >
+                  <ArrowDownward fontSize="small" />
+                </IconButton>
+              </Box>
+            );
+          })}
+        </Box>
+      )}
     </FormControl>
   );
 };
