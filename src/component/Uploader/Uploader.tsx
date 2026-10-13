@@ -336,6 +336,8 @@ const Uploader = () => {
             fullWidth
             margin="dense"
             label={t("uploader.storagePolicy")}
+            SelectProps={{ displayEmpty: true }}
+            InputLabelProps={{ shrink: true }}
             value={choiceID}
             disabled={loadingPolicies || !policies.length}
             onChange={(event) => setChoice({ owner: ownerID, id: event.target.value })}
