@@ -504,7 +504,7 @@ export enum EncryptionCipher {
 export interface UploadSessionRequest {
   uri: string;
   size: number;
-  policy_id: string;
+  policy_id?: string;
   last_modified?: number;
   entity_type?: string;
   metadata?: {

@@ -70,6 +70,7 @@ import {
   ShareCreateService,
   UnlockFileService,
   UploadCredential,
+  StoragePolicy,
   UploadSessionRequest,
   VersionControlService,
   ViewerGroup,
@@ -1080,6 +1081,14 @@ export function getUserSettings(): ThunkResponse<UserSettings> {
         },
       ),
     );
+  };
+}
+
+export function getAvailableStoragePolicies(): ThunkResponse<StoragePolicy[]> {
+  return async (dispatch) => {
+    const policies = await dispatch(send("/user/setting/policies", { method: "GET" }, { ...defaultOpts }));
+    if (!Array.isArray(policies)) throw new Error("Invalid available storage policies response");
+    return policies;
   };
 }
 

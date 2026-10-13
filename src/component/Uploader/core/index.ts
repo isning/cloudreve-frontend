@@ -49,6 +49,7 @@ export default class UploadManager {
   public overwrite?: boolean;
   private static id = 0;
   private policy?: StoragePolicy;
+  private automaticPolicy = true;
   private fileInput: HTMLInputElement;
   private directoryInput: HTMLInputElement;
   private id = ++UploadManager.id;
@@ -136,8 +137,9 @@ export default class UploadManager {
   }
 
   // 设定当前存储策略
-  public setPolicy(p?: StoragePolicy, path?: string) {
+  public setPolicy(p?: StoragePolicy, path?: string, automatic = true) {
     this.policy = p;
+    this.automaticPolicy = automatic;
     this.currentPath = path;
     this.logger.info(`Switching path to:`, path);
     if (p == undefined) {
@@ -147,7 +149,7 @@ export default class UploadManager {
 
     this.logger.info(`Switching policy to:`, p);
 
-    if (p.allowed_suffix != undefined && p.allowed_suffix.length > 0) {
+    if (!automatic && p.allowed_suffix != undefined && p.allowed_suffix.length > 0) {
       const acceptVal = p.allowed_suffix
         .map((v) => {
           return "." + v;
@@ -255,8 +257,10 @@ export default class UploadManager {
           return this.dispatchUploader({
             type: TaskType.file,
             policy: this.policy as StoragePolicy,
+            automaticPolicy: this.automaticPolicy,
             dst: getDirectoryUploadDst(dst, file),
             file: file,
+            blob: file,
             size: file.size,
             overwrite: this.overwrite,
             name: getName ? getName(file) : file.name,

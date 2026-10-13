@@ -693,7 +693,10 @@
     "upyunUploadFailed": "Upload failed: {{msg}}",
     "parseResponseError": "Unable to parse response: {{msg}} ({{content}})",
     "concurrentTaskNumber": "Concurrent task limit",
-    "dropFileHere": "Drop file to upload"
+    "dropFileHere": "Drop file to upload",
+    "automaticPolicy": "Automatic",
+    "noAvailablePolicies": "No available storage policies",
+    "chooseFiles": "Choose files"
   },
   "share": {
     "statistics": "Statistics",

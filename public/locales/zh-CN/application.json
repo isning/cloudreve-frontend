@@ -693,7 +693,10 @@
     "upyunUploadFailed": "上传失败：{{msg}}",
     "parseResponseError": "无法解析响应：{{msg}} ({{content}})",
     "concurrentTaskNumber": "同时上传的任务数量",
-    "dropFileHere": "松开鼠标开始上传"
+    "dropFileHere": "松开鼠标开始上传",
+    "automaticPolicy": "自动选择",
+    "noAvailablePolicies": "没有可用存储策略",
+    "chooseFiles": "选择文件"
   },
   "share": {
     "statistics": "统计",
