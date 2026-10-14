@@ -329,7 +329,7 @@ const Uploader = () => {
     <>
       <Dialog open={!!selection} onClose={() => setSelection(undefined)} fullWidth maxWidth="xs">
         <DialogTitle>
-          {t(selection?.type === SelectType.Directory ? "uploader.uploadFolder" : "uploader.uploadFiles")}
+          {t(selection?.type === SelectType.Directory ? "fileManager.uploadFolder" : "fileManager.uploadFiles")}
         </DialogTitle>
         <DialogContent>
           <TextField
