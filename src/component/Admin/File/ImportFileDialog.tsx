@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { sendImport } from "../../../api/api";
 import { User } from "../../../api/user";
+import { PolicyType } from "../../../api/explorer";
 import { useAppDispatch } from "../../../redux/hooks";
 import { DefaultCloseAction } from "../../Common/Snackbar/snackbar";
 import { DenseFilledTextField, SmallFormControlLabel } from "../../Common/StyledComponents";
@@ -125,7 +126,11 @@ export const ImportFileDialog = ({ open, onClose }: ImportFileDialogProps) => {
               </ul>
             </Alert>
             <SettingForm lgWidth={12} title={t("file.storagePolicy")}>
-              <SinglePolicySelectionInput value={formState.storagePolicyId} onChange={handlePolicyChange} />
+              <SinglePolicySelectionInput
+                value={formState.storagePolicyId}
+                onChange={handlePolicyChange}
+                filter={(policy) => policy.type !== PolicyType.load_balance}
+              />
               <NoMarginHelperText>{t("file.storagePolicyDes")}</NoMarginHelperText>
             </SettingForm>
             <SettingForm lgWidth={12} title={t("file.srcFolderPath")}>

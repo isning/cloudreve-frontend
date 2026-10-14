@@ -119,6 +119,8 @@ export interface StoragePolicy {
   chunk_concurrency?: number;
   encryption?: boolean;
   streaming_encryption?: boolean;
+  weight?: number;
+  children?: StoragePolicy[];
 }
 
 export interface PaginationResults {

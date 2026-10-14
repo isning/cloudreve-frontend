@@ -111,6 +111,9 @@ export default class UploadManager {
     }
 
     switch (task.policy.type) {
+      case PolicyType.load_balance:
+        // The session resolves the pool to a concrete policy before transport.
+        return new Local(task, this);
       case PolicyType.local:
         return new Local(task, this);
       case PolicyType.remote:

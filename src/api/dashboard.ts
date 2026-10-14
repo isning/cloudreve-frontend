@@ -146,10 +146,18 @@ export interface StoragePolicy extends CommonMixin {
     users?: User[];
     groups?: GroupEnt[];
     node?: Node;
+    policy_load_balance?: PolicyLoadBalance[];
   };
   entities_count?: number;
   entities_size?: number;
   hash_id?: string;
+}
+
+export interface PolicyLoadBalance {
+  id: number;
+  load_balance_id: number;
+  storage_policy_id: number;
+  weight?: number;
 }
 
 export enum NodeType {

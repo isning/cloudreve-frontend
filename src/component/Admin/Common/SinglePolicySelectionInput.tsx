@@ -13,6 +13,7 @@ export interface SinglePolicySelectionInputProps {
   emptyValue?: number;
   emptyText?: string;
   simplified?: boolean;
+  filter?: (policy: StoragePolicy) => boolean;
 }
 
 const SinglePolicySelectionInput = ({
@@ -21,6 +22,7 @@ const SinglePolicySelectionInput = ({
   emptyValue,
   emptyText,
   simplified,
+  filter,
 }: SinglePolicySelectionInputProps) => {
   const { t } = useTranslation("dashboard");
   const dispatch = useAppDispatch();
@@ -87,23 +89,25 @@ const SinglePolicySelectionInput = ({
         }}
       >
         {policies.length > 0 &&
-          policies.map((policy) => (
-            <SquareMenuItem key={policy.id} value={policy.id}>
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                }}
-              >
-                <Typography variant={"body2"} fontWeight={600}>
-                  {policy.name}
-                </Typography>
-                <Typography variant={"caption"} color={"textSecondary"}>
-                  {t(`policy.${policy.type}`)}
-                </Typography>
-              </Box>
-            </SquareMenuItem>
-          ))}
+          policies
+            .filter((policy) => !filter || filter(policy))
+            .map((policy) => (
+              <SquareMenuItem key={policy.id} value={policy.id}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                  }}
+                >
+                  <Typography variant={"body2"} fontWeight={600}>
+                    {policy.name}
+                  </Typography>
+                  <Typography variant={"caption"} color={"textSecondary"}>
+                    {t(`policy.${policy.type}`)}
+                  </Typography>
+                </Box>
+              </SquareMenuItem>
+            ))}
         {emptyValue !== undefined && emptyText && (
           <SquareMenuItem value={emptyValue}>
             <ListItemText

@@ -80,7 +80,7 @@ const StoragePolicySettingWrapper = ({ policyID, children, onPolicyChange }: Sto
     setSubmitting(true);
     dispatch(
       upsertStoragePolicy({
-        policy: { ...modifiedValues, edges: {} },
+        policy: { ...modifiedValues, edges: { policy_load_balance: modifiedValues.edges.policy_load_balance } },
       }),
     )
       .then((res) => {

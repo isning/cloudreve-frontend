@@ -22,6 +22,7 @@ import SelectProvider from "./SelectProvider";
 import StoragePolicyCard from "./StoragePolicyCard";
 import CosWizard from "./Wizards/COS/CosWizard";
 import LocalWizard from "./Wizards/Local/LocalWizard";
+import LoadBalanceWizard from "./Wizards/LoadBalance/LoadBalanceWizard";
 import ObsWizard from "./Wizards/OBS/ObsWizard";
 import OneDriveWizard from "./Wizards/OneDrive/OneDriveWizard";
 import OssWizard from "./Wizards/OSS/OssWizard";
@@ -78,7 +79,7 @@ export const PolicyPropsMap: Record<PolicyType, PolicyProps> = {
     name: "policy.load_balance",
     img: "/static/img/lb.svg",
     wizardSize: "sm",
-    pro: true,
+    wizard: LoadBalanceWizard,
   },
   [PolicyType.remote]: {
     name: "policy.remote",
@@ -471,7 +472,9 @@ const StoragePolicySetting = () => {
             policies.map((p) => <StoragePolicyCard key={`loading-${p.id}`} loading={true} />)}
           {loading &&
             policies.length === 0 &&
-            Array.from(Array(5)).map((_, index) => <StoragePolicyCard key={`loading-placeholder-${index}`} loading={true} />)}
+            Array.from(Array(5)).map((_, index) => (
+              <StoragePolicyCard key={`loading-placeholder-${index}`} loading={true} />
+            ))}
         </Grid>
         {count > 0 && (
           <Box sx={{ mt: 1 }}>
