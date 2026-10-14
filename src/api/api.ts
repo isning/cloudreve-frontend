@@ -37,6 +37,7 @@ import {
   ThumbGeneratorTestService,
   UpsertFileService,
   UpsertGroupService,
+  GetGroupResponse,
   UpsertNodeService,
   UpsertOAuthClientService,
   UpsertStoragePolicyService,
@@ -69,6 +70,7 @@ import {
   ShareCreateService,
   UnlockFileService,
   UploadCredential,
+  StoragePolicy,
   UploadSessionRequest,
   VersionControlService,
   ViewerGroup,
@@ -107,6 +109,7 @@ import {
   ImportWorkflowService,
   ListTaskService,
   RebuildFTSIndexWorkflowService,
+  RelocateWorkflowService,
   SetDownloadFilesService,
   TaskListResponse,
   TaskProgresses,
@@ -822,6 +825,10 @@ export function sendOneDriveCompleteUpload(sessionId: string, sessionKey: string
   };
 }
 
+export function sendRelocate(req: RelocateWorkflowService): ThunkResponse<TaskResponse> {
+  return async (dispatch) => dispatch(send("/workflow/reloacte", { method: "POST", data: req }, { ...defaultOpts }));
+}
+
 export function sendCreateArchive(req: ArchiveWorkflowService): ThunkResponse<TaskResponse> {
   return async (dispatch, _getState) => {
     return await dispatch(
@@ -1080,6 +1087,19 @@ export function getUserSettings(): ThunkResponse<UserSettings> {
       ),
     );
   };
+}
+
+export function getAvailableStoragePolicies(): ThunkResponse<StoragePolicy[]> {
+  return async (dispatch) => {
+    const policies = await dispatch(send("/user/setting/policies", { method: "GET" }, { ...defaultOpts }));
+    if (!Array.isArray(policies)) throw new Error("Invalid available storage policies response");
+    return policies;
+  };
+}
+
+export function bindStoragePolicy(uri: string, policy_id: string): ThunkResponse<void> {
+  return async (dispatch) =>
+    dispatch(send("/file/policy", { method: "PATCH", data: { uri, policy_id } }, { ...defaultOpts }));
 }
 
 export function sendUploadAvatar(avatar?: Blob, contentType?: string): ThunkResponse {
@@ -1627,7 +1647,7 @@ export function deleteStoragePolicy(id: number): ThunkResponse<void> {
   };
 }
 
-export function getGroupDetail(id: number, countUser?: boolean): ThunkResponse<GroupEnt> {
+export function getGroupDetail(id: number, countUser?: boolean): ThunkResponse<GetGroupResponse> {
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
@@ -1641,7 +1661,7 @@ export function getGroupDetail(id: number, countUser?: boolean): ThunkResponse<G
   };
 }
 
-export function upsertGroup(args: UpsertGroupService): ThunkResponse<GroupEnt> {
+export function upsertGroup(args: UpsertGroupService): ThunkResponse<GetGroupResponse> {
   return async (dispatch, _getState) => {
     return await dispatch(
       send(
@@ -2063,7 +2083,7 @@ export function sendConsentOauthApp(args: GrantService, deny = false): ThunkResp
       send(
         `/session/oauth/consent${deny ? "/deny" : ""}`,
         { method: "POST", data: args },
-        { bypassSnackbar: (e) => true, ...defaultOpts },
+        { bypassSnackbar: () => true, ...defaultOpts },
       ),
     );
   };

@@ -1,4 +1,5 @@
 import dayjs from "dayjs";
+import { updateSiteConfig } from "./site.ts";
 import { getFileInfo, getFileList, getUserCapacity, sendPatchViewSync } from "../../api/api.ts";
 import { ExplorerView, FileResponse, FileType, ListResponse, Metadata } from "../../api/explorer.ts";
 import { getActionOpt } from "../../component/FileManager/ContextMenu/useActionDisplayOpt.ts";
@@ -400,6 +401,13 @@ export function fileHovered(index: number, file: FileResponse, hovered: boolean)
 
 export function refreshFileList(index: number): AppThunk {
   return async (dispatch, _getState) => {
+    if (SessionManager.currentLoginOrNull()) {
+      try {
+        await dispatch(updateSiteConfig());
+      } catch {
+        /* Native requests report identity errors; navigation can still refresh. */
+      }
+    }
     dispatch(closeContextMenu({ index, value: undefined }));
     await dispatch(navigateReconcile(index));
     dispatch(clearSelected({ index, value: undefined }));

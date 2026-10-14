@@ -11,7 +11,8 @@ import {
   Typography,
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
-import { TaskResponse, TaskStatus } from "../../../api/workflow.ts";
+import { TaskResponse, TaskStatus, TaskType } from "../../../api/workflow.ts";
+import { sizeToString } from "../../../util";
 import { StyledTableContainerPaper } from "../../Common/StyledComponents.tsx";
 import DownloadFileList from "./DownloadFileList.tsx";
 import TaskProgress from "./TaskProgress.tsx";
@@ -45,6 +46,26 @@ const TaskDetail = ({ task, downloading }: TaskDetailProps) => {
               num: task.summary?.props?.failed,
             })}
           </Alert>
+        )}
+        {task.type === TaskType.relocate && task.summary?.props.entities_total !== undefined && (
+          <Stack spacing={0.5}>
+            <Typography variant="body2">
+              {t("setting.relocatedEntities")}: {task.summary.props.entities_completed ?? 0} /{" "}
+              {task.summary.props.entities_total}
+            </Typography>
+            <Typography variant="body2">
+              {t("setting.relocatedBytes")}: {sizeToString(task.summary.props.bytes_copied ?? 0)} /{" "}
+              {sizeToString(task.summary.props.bytes_total ?? 0)}
+            </Typography>
+            {!!task.summary.props.entities_failed && (
+              <Alert severity="warning">
+                {t("setting.migrationPartialFailure", {
+                  completed: task.summary.props.entities_completed ?? 0,
+                  failed: task.summary.props.entities_failed,
+                })}
+              </Alert>
+            )}
+          </Stack>
         )}
         {task.status == TaskStatus.error && <Alert severity={"error"}>{task.error}</Alert>}
         <TaskProgress

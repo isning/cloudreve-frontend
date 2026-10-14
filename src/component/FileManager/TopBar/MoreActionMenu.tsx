@@ -2,7 +2,8 @@ import { ListItemIcon, ListItemText, MenuProps, Typography, useMediaQuery, useTh
 import { usePopupState } from "material-ui-popup-state/hooks";
 import { useCallback, useContext } from "react";
 import { useTranslation } from "react-i18next";
-import { clearSelected } from "../../../redux/fileManagerSlice.ts";
+import { clearSelected, ContextMenuTypes } from "../../../redux/fileManagerSlice.ts";
+import { setRelocateDialog } from "../../../redux/globalStateSlice.ts";
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks.ts";
 import { createShareShortcut, isMacbook } from "../../../redux/thunks/file.ts";
 import { inverseSelection, pinCurrentView, refreshFileList, selectAll } from "../../../redux/thunks/filemanager.ts";
@@ -13,6 +14,8 @@ import ArrowSync from "../../Icons/ArrowSync.tsx";
 import Border from "../../Icons/Border.tsx";
 import BorderAll from "../../Icons/BorderAll.tsx";
 import BorderInside from "../../Icons/BorderInside.tsx";
+import FolderArrowUp from "../../Icons/FolderArrowUp.tsx";
+import { getActionOpt } from "../ContextMenu/useActionDisplayOpt.ts";
 import FolderLink from "../../Icons/FolderLink.tsx";
 import PinOutlined from "../../Icons/PinOutlined.tsx";
 import { DenseDivider, SquareMenu, SquareMenuItem } from "../ContextMenu/ContextMenu.tsx";
@@ -23,6 +26,8 @@ const MoreActionMenu = ({ onClose, ...rest }: MenuProps) => {
   const fmIndex = useContext(FmIndexContext);
   const fs = useAppSelector((state) => state.fileManager[fmIndex].current_fs);
   const dispatch = useAppDispatch();
+  const parent = useAppSelector((state) => state.fileManager[fmIndex].list?.parent);
+  const showRelocate = getActionOpt([], undefined, ContextMenuTypes.empty, parent, fmIndex).showRelocate;
   const isLogin = !!SessionManager.currentLoginOrNull();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -102,6 +107,25 @@ const MoreActionMenu = ({ onClose, ...rest }: MenuProps) => {
             <FolderLink fontSize="small" />
           </ListItemIcon>
           <ListItemText>{t("application:fileManager.saveShortcut")}</ListItemText>
+        </SquareMenuItem>
+      )}
+      {showRelocate && parent && (
+        <SquareMenuItem
+          onClick={() => {
+            dispatch(
+              setRelocateDialog({
+                files: [parent],
+                index: fmIndex,
+                owner: SessionManager.currentLoginOrNull()?.user.id ?? "",
+              }),
+            );
+            onClose && onClose({}, "escapeKeyDown");
+          }}
+        >
+          <ListItemIcon>
+            <FolderArrowUp fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>{t("application:fileManager.relocateStoragePolicy")}</ListItemText>
         </SquareMenuItem>
       )}
       {isLogin && <DenseDivider />}

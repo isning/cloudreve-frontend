@@ -117,7 +117,7 @@ export default abstract class Base {
     this.lastTime = this.startTime = Date.now();
 
     try {
-      validate(this.task.file, this.task.policy);
+      if (!this.task.automaticPolicy) validate(this.task.file, this.task.policy);
     } catch (e) {
       this.logger.error("File validate failed with error:", e);
       this.setError(e as Error);
@@ -143,12 +143,11 @@ export default abstract class Base {
         {
           uri: crUri.toString(),
           size: this.task.file.size,
-          policy_id: this.task.policy.id,
+          policy_id: this.task.automaticPolicy ? undefined : this.task.policy.id,
           last_modified: this.task.file.lastModified,
           mime_type: this.task.file.type,
           entity_type: this.task.overwrite ? "version" : undefined,
-          encryption_supported:
-            this.task.policy.encryption && "crypto" in window ? [EncryptionCipher.aes256ctr] : undefined,
+          encryption_supported: "crypto" in window ? [EncryptionCipher.aes256ctr] : undefined,
         },
         this.cancelToken.token,
       );
@@ -159,6 +158,10 @@ export default abstract class Base {
       this.task.chunkProgress = cachedInfo.chunkProgress;
       this.logger.info("Resume upload from cached ctx:", cachedInfo);
     }
+
+    // The issued credential fixes the real destination, including automatic
+    // placement for existing versions whose preference differs from the folder.
+    this.task.policy = this.task.session?.storage_policy ?? this.task.policy;
 
     if (this.task.session?.encrypt_metadata && !this.task.policy?.relay) {
       // Check browser support for encryption
@@ -175,8 +178,19 @@ export default abstract class Base {
     }
 
     this.transit(Status.processing);
-    await this.upload();
-    await this.afterUpload();
+    const transport = this.manager.dispatchUploader(this.task);
+    transport.cancelToken = this.cancelToken;
+    transport.subscriber = {
+      onTransition: (status) => this.transit(status),
+      onError: (error) => this.setError(error),
+      onMsg: (message, color) => this.subscriber.onMsg(message, color),
+      onProgress: (progress) => {
+        this.progress = progress;
+        this.subscriber.onProgress(progress);
+      },
+    };
+    await transport.upload();
+    await transport.afterUpload();
     utils.removeResumeCtx(this.task, this.logger);
     this.transit(Status.finished);
     this.logger.info("Upload task completed");

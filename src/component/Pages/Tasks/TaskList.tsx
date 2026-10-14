@@ -4,10 +4,12 @@ import { ListTaskCategory, TaskResponse } from "../../../api/workflow.ts";
 import { Box, Container, FormControlLabel, FormGroup, Switch, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import PageHeader from "../PageHeader.tsx";
-import { getTasks } from "../../../api/api.ts";
+import { getAvailableStoragePolicies, getTasks } from "../../../api/api.ts";
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks.ts";
 import Nothing from "../../Common/Nothing.tsx";
 import TaskCard from "./TaskCard.tsx";
+import SessionManager from "../../../session";
+import { StoragePolicy } from "../../../api/explorer.ts";
 import PageContainer from "../PageContainer.tsx";
 
 const defaultPageSize = 25;
@@ -17,6 +19,18 @@ const TaskList = () => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const policyOption = useAppSelector((state) => state.globalState.policyOptionCache);
+  const owner = SessionManager.currentLoginOrNull()?.user.id ?? "";
+  const [destinations, setDestinations] = useState<{ owner: string; policies?: StoragePolicy[] }>({ owner: "" });
+  const relocationPolicies = destinations.owner === owner ? destinations.policies : undefined;
+  useEffect(() => {
+    let active = true;
+    setDestinations({ owner });
+    if (!owner) return;
+    dispatch(getAvailableStoragePolicies())
+      .then((policies) => { if (active && SessionManager.currentLoginOrNull()?.user.id === owner) setDestinations({ owner, policies }); })
+      .catch(() => { if (active) setDestinations({ owner, policies: [] }); });
+    return () => { active = false; };
+  }, [owner, dispatch]);
   const [nextPageToken, setNextPageToken] = useState<string | undefined>("");
   const [tasks, setTasks] = useState<TaskResponse[]>([]);
   const [loading, setLoading] = useState(false);
@@ -105,7 +119,7 @@ const TaskList = () => {
           title={t("application:navbar.taskQueue")}
         />
         {tasks.map((task) => (
-          <TaskCard key={task.id} task={task} />
+          <TaskCard key={task.id} task={task} relocationPolicies={relocationPolicies} />
         ))}
         {nextPageToken != undefined && (
           <TaskCard onLoad={loadNextPage(tasks, nextPageToken)} loading={true} key={nextPageToken} />

@@ -1,4 +1,16 @@
 import dayjs from "dayjs";
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  MenuItem,
+  TextField,
+  Typography,
+} from "@mui/material";
+import { getAvailableStoragePolicies } from "../../api/api.ts";
+import { StoragePolicy } from "../../api/explorer.ts";
 import { useSnackbar } from "notistack";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -33,6 +45,16 @@ const Uploader = () => {
   const { enqueueSnackbar } = useSnackbar();
   const [uploaders, setUploaders] = useState<Base[]>([]);
   const [dropBgOpen, setDropBgOpen] = useState(false);
+  const ownerID = SessionManager.currentLoginOrNull()?.user.id ?? "";
+  const [destinations, setDestinations] = useState<{ owner: string; policies: StoragePolicy[] }>({
+    owner: "",
+    policies: [],
+  });
+  const [choice, setChoice] = useState<{ owner: string; id: string }>({ owner: "", id: "" });
+  const [loadingPolicies, setLoadingPolicies] = useState(false);
+  const [selection, setSelection] = useState<{ path: string; type: SelectType }>();
+  const policies = destinations.owner === ownerID ? destinations.policies : [];
+  const choiceID = choice.owner === ownerID && policies.some((p) => p.id === choice.id) ? choice.id : "";
 
   const uploadEnabled = useRef<boolean>(false);
 
@@ -41,6 +63,7 @@ const Uploader = () => {
   const parent = useAppSelector((state) => state.fileManager[FileManagerIndex.main].list?.parent);
   const path = useAppSelector((state) => state.fileManager[FileManagerIndex.main].pure_path);
   const policy = useAppSelector((state) => state.fileManager[FileManagerIndex.main].list?.storage_policy);
+  const automaticDestination = policies.find((p) => p.id === policy?.id) ?? policies[0];
   const selectFileSignal = useAppSelector((state) => state.globalState.uploadFileSignal);
   const selectFolderSignal = useAppSelector((state) => state.globalState.uploadFolderSignal);
   const uploadRawPromiseId = useAppSelector((state) => state.globalState.uploadRawPromiseId);
@@ -117,8 +140,37 @@ const Uploader = () => {
   }, [enqueueSnackbar, taskAdded, dispatch]);
 
   useEffect(() => {
-    uploadManager.setPolicy(policy, path);
-  }, [policy, path]);
+    let active = true;
+    setChoice({ owner: ownerID, id: "" });
+    setSelection(undefined);
+    setLoadingPolicies(true);
+    if (!ownerID) {
+      setDestinations({ owner: ownerID, policies: [] });
+      setLoadingPolicies(false);
+      return;
+    }
+    dispatch(getAvailableStoragePolicies())
+      .then((available) => {
+        if (active) setDestinations({ owner: ownerID, policies: available });
+      })
+      .catch(() => {
+        if (active) setDestinations({ owner: ownerID, policies: [] });
+      })
+      .finally(() => {
+        if (active) setLoadingPolicies(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [ownerID, dispatch]);
+
+  useEffect(() => {
+    uploadManager.setPolicy(
+      policies.length ? policies.find((p) => p.id === choiceID) ?? policy ?? policies[0] : undefined,
+      path,
+      !choiceID,
+    );
+  }, [policy, path, destinations, choiceID, ownerID, uploadManager]);
 
   const handleUploaderError = useCallback(
     (e: any) => {
@@ -135,6 +187,10 @@ const Uploader = () => {
 
   const selectFile = useCallback(
     (path: string, type = SelectType.File, original?: Base) => {
+      if (!original) {
+        setSelection({ path, type });
+        return;
+      }
       dispatch(openUploadTaskList());
 
       // eslint-disable-next-line no-unreachable
@@ -147,6 +203,17 @@ const Uploader = () => {
     },
     [uploadManager, taskAdded, handleUploaderError, dispatch],
   );
+
+  const confirmSelection = () => {
+    if (!selection || !policies.length) return;
+    uploadManager.setPolicy(
+      policies.find((p) => p.id === choiceID) ?? policy ?? policies[0],
+      selection.path,
+      !choiceID,
+    );
+    uploadManager.select(selection.path, selection.type).then(taskAdded()).catch(handleUploaderError);
+    setSelection(undefined);
+  };
 
   const getClipboardFileName = useCallback(
     (f: File) => {
@@ -260,6 +327,47 @@ const Uploader = () => {
 
   return (
     <>
+      <Dialog open={!!selection} onClose={() => setSelection(undefined)} fullWidth maxWidth="xs">
+        <DialogTitle>
+          {t(selection?.type === SelectType.Directory ? "uploader.uploadFolder" : "uploader.uploadFiles")}
+        </DialogTitle>
+        <DialogContent>
+          <TextField
+            select
+            fullWidth
+            margin="dense"
+            label={t("uploader.storagePolicy")}
+            SelectProps={{ displayEmpty: true }}
+            InputLabelProps={{ shrink: true }}
+            helperText={
+              !choiceID && automaticDestination
+                ? t("uploader.automaticPolicyDestination", { name: automaticDestination.name })
+                : undefined
+            }
+            value={choiceID}
+            disabled={loadingPolicies || !policies.length}
+            onChange={(event) => setChoice({ owner: ownerID, id: event.target.value })}
+          >
+            <MenuItem value="">{t("uploader.automaticPolicy")}</MenuItem>
+            {policies.map((p) => (
+              <MenuItem key={p.id} value={p.id}>
+                {p.name}
+              </MenuItem>
+            ))}
+          </TextField>
+          {!loadingPolicies && !policies.length && (
+            <Typography color="error" variant="body2">
+              {t("uploader.noAvailablePolicies")}
+            </Typography>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setSelection(undefined)}>{t("cancel", { ns: "common" })}</Button>
+          <Button disabled={loadingPolicies || !policies.length} onClick={confirmSelection}>
+            {t("uploader.chooseFiles")}
+          </Button>
+        </DialogActions>
+      </Dialog>
       <PasteUploadDialog onFilePasted={addRawFiles} />
       <DropFileBackground open={dropBgOpen} />
       <TaskList

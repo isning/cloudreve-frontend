@@ -55,6 +55,16 @@ const FileManagementSection = () => {
     [setGroup],
   );
 
+  const onMigrationChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setGroup((group: GroupEnt) => ({
+        ...group,
+        permissions: new Boolset(group.permissions).set(GroupPermission.relocate, event.target.checked).toString(),
+      }));
+    },
+    [setGroup],
+  );
+
   const onAllowWabDAVProxyChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       setGroup((p: GroupEnt) => ({
@@ -196,15 +206,12 @@ const FileManagementSection = () => {
               </SettingForm>
             </Collapse>
             <SettingForm lgWidth={5}>
-              <FormControl fullWidth onClick={onProClick}>
+              <FormControl fullWidth>
                 <FormControlLabel
-                  control={<Switch checked={false} />}
-                  label={
-                    <Box sx={{ display: "flex", alignItems: "center" }}>
-                      {t("group.migratePolicy")}
-                      <ProChip size="small" label="Pro" />
-                    </Box>
+                  control={
+                    <Switch checked={permission.enabled(GroupPermission.relocate)} onChange={onMigrationChange} />
                   }
+                  label={t("group.migratePolicy")}
                 />
                 <NoMarginHelperText>{t("group.migratePolicyDes")}</NoMarginHelperText>
               </FormControl>

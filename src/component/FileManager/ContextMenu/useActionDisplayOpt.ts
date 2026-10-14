@@ -79,6 +79,8 @@ export interface DisplayOption {
   showManageShares?: boolean;
   showCreateArchive?: boolean;
   showResetThumb?: boolean;
+  showBindPolicy?: boolean;
+  showRelocate?: boolean;
 
   andCapability?: Boolset;
   orCapability?: Boolset;
@@ -116,6 +118,21 @@ export const getActionOpt = (
       return display;
     }
 
+    const parentUri = parent.path ? new CrUri(parent.path) : undefined;
+    display.showRelocate =
+      type === ContextMenuTypes.empty &&
+      fmIndex === FileManagerIndex.main &&
+      !!currentUser &&
+      groupBs.enabled(GroupPermission.relocate) &&
+      parent.owned &&
+      !!parent.capability &&
+      new Boolset(parent.capability).enabled(NavigatorCapability.relocate) &&
+      !parent.metadata?.[Metadata.share_redirect] &&
+      !parent.metadata?.[Metadata.restore_uri] &&
+      parentUri?.fs() === Filesystem.my &&
+      parentUri.is_root() &&
+      !parentUri.is_search() &&
+      (!parentUri.id() || parentUri.id() === currentUser.user.id);
     const parentCap = new Boolset(parent.capability);
     display.showCreateFolder = parentCap.enabled(NavigatorCapability.create_file) && parent.owned;
     display.showCreateFile = display.showCreateFolder && fmIndex == FileManagerIndex.main;
@@ -279,6 +296,31 @@ export const getActionOpt = (
   display.showGoToSharedLink =
     targets.length == 1 && display.hasFile && targets[0].metadata && !!targets[0].metadata[Metadata.share_redirect];
   display.showInfo = targets.length == 1 && display.orCapability && canShowInfo(display.orCapability);
+  display.showRelocate =
+    targets.length > 0 &&
+    !!currentUser &&
+    groupBs.enabled(GroupPermission.relocate) &&
+    targets.every(
+      (file) =>
+        file.owned &&
+        (file.type === FileType.file || file.type === FileType.folder) &&
+        !!file.path &&
+        !file.metadata?.[Metadata.share_redirect] &&
+        !file.metadata?.[Metadata.restore_uri] &&
+        new CrUri(file.path).fs() === Filesystem.my &&
+        !!file.capability &&
+        new Boolset(file.capability).enabled(NavigatorCapability.relocate),
+    );
+  display.showBindPolicy =
+    targets.length === 1 &&
+    !!currentUser &&
+    targets[0].owned &&
+    targets[0].type === FileType.folder &&
+    !!targets[0].path &&
+    !targets[0].metadata?.[Metadata.share_redirect] &&
+    new CrUri(targets[0].path).fs() === Filesystem.my &&
+    !new CrUri(targets[0].path).is_root() &&
+    display.orCapability?.enabled(NavigatorCapability.bind_policy);
   display.showVersionControl =
     targets.length == 1 &&
     display.orCapability &&
@@ -315,9 +357,10 @@ export const getActionOpt = (
 };
 
 const useActionDisplayOpt = (targets: FileResponse[], type?: string, parent?: FileResponse, fmIndex: number = 0) => {
+  const permission = SessionManager.currentUserGroup()?.permission;
   const opt = useMemo(() => {
     return getActionOpt(targets, Viewers, type, parent, fmIndex);
-  }, [targets, type, parent, fmIndex]);
+  }, [targets, type, parent, fmIndex, permission]);
 
   return opt;
 };

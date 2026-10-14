@@ -108,7 +108,7 @@ export default function Photo({
     )
       .then(async (res) => {
         const originalUrl = res.urls[0].url;
-        const cacheKey = `${file.id}-${version || "default"}`;
+        const cacheKey = `${file.id}-${version || "default"}-${originalUrl}`;
 
         // Check if the file is HEIC/HEIF and convert if needed
         if (isHeicFile(file.name)) {

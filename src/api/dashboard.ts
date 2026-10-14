@@ -52,6 +52,11 @@ export interface GroupEnt extends CommonMixin {
   settings?: GroupSetting;
 }
 
+export interface GetGroupResponse extends GroupEnt {
+  group?: GroupEnt;
+  policy_ids?: number[];
+}
+
 export interface GroupSetting {
   compress_size?: number;
   decompress_size?: number;
@@ -344,6 +349,7 @@ export interface FinishOauthCallbackService {
 
 export interface UpsertGroupService {
   group: GroupEnt;
+  policy_ids?: number[];
 }
 
 export interface TestNodeService {

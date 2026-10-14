@@ -453,7 +453,16 @@
     "noEncryption": "Not encrypted",
     "ftsStatus": "Full-text index",
     "ftsIndexed": "Indexed",
-    "ftsNotIndexed": "Not indexed"
+    "ftsNotIndexed": "Not indexed",
+    "bindStoragePolicy": "Bind storage policy",
+    "bindStoragePolicyDescription": "New uploads use this policy. Existing content keeps its current location.",
+    "relocateStoragePolicy": "Relocate storage policy",
+    "relocatePersonalRootDescription": "Personal root migration is supported by this project. Only existing content in the migration snapshot moves; future upload preferences stay unchanged. The personal root cannot be bound to a storage policy.",
+    "relocateStoragePolicyDescription": "Move existing content to another storage policy. Future upload preferences remain unchanged.",
+    "relocateTaskAccepted": "Migration task accepted. Follow its progress in Background Tasks.",
+    "unavailableStorageDestination": "Policy outside current choices ({{id}})",
+    "chooseStorageDestination": "Choose a storage destination",
+    "startStorageMigration": "Create migration task"
   },
   "modals": {
     "includePasswordInShareLink": "Include password in share link",
@@ -693,7 +702,11 @@
     "upyunUploadFailed": "Upload failed: {{msg}}",
     "parseResponseError": "Unable to parse response: {{msg}} ({{content}})",
     "concurrentTaskNumber": "Concurrent task limit",
-    "dropFileHere": "Drop file to upload"
+    "dropFileHere": "Drop file to upload",
+    "automaticPolicy": "Automatic",
+    "automaticPolicyDestination": "Current folder destination: {{name}}",
+    "noAvailablePolicies": "No available storage policies",
+    "chooseFiles": "Choose files"
   },
   "share": {
     "statistics": "Statistics",
@@ -783,6 +796,12 @@
     "unknownSize": "Unknown file size"
   },
   "setting": {
+    "relocatedEntities": "Completed entities",
+    "relocatedBytes": "Copied bytes",
+    "failedMigrationEntities": "Unsuccessful entities",
+    "transferringRelocateDes": "Copy and verify stored bytes before switching references.",
+    "relocateFinishing": "Preserve file identity and future upload preferences.",
+    "migrationPartialFailure": "Completed {{completed}}; failed or unprocessed {{failed}}. Committed content stays available.",
     "treeView": "Tree view",
     "autoExpandTreeView": "Auto expand tree view",
     "autoExpandTreeViewDes": "When enabled, the file tree in the sidebar will follow the current directory and expand automatically.",

@@ -22,7 +22,6 @@ const defaultGroupBs = new Boolset("");
 defaultGroupBs.sets({
   [GroupPermission.share]: true,
   [GroupPermission.share_download]: true,
-  [GroupPermission.set_anonymous_permission]: true,
 });
 const defaultGroup: GroupEnt = {
   name: "",

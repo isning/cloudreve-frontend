@@ -79,6 +79,7 @@ const AppMain = () => {
         <CSSTransition
           addEndListener={(node, done) => node.addEventListener("transitionend", done, false)}
           classNames="fade"
+          timeout={150}
           key={navigation.state !== "idle" ? "loading" : "idle"}
         >
           {navigation.state !== "idle" ? (

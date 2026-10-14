@@ -11,6 +11,7 @@ export interface Task {
   name: string;
   size: number;
   policy: StoragePolicy;
+  automaticPolicy?: boolean;
   dst: string;
   file: File;
   blob: Blob;

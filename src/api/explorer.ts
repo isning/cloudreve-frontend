@@ -277,6 +277,8 @@ export const NavigatorCapability = {
   share: 18,
   info: 19,
   version_control: 20,
+  bind_policy: 21,
+  relocate: 22,
   enter_folder: 23,
 };
 
@@ -504,7 +506,7 @@ export enum EncryptionCipher {
 export interface UploadSessionRequest {
   uri: string;
   size: number;
-  policy_id: string;
+  policy_id?: string;
   last_modified?: number;
   entity_type?: string;
   metadata?: {

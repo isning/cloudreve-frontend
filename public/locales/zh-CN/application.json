@@ -453,7 +453,16 @@
     "noEncryption": "未加密",
     "ftsStatus": "全文索引",
     "ftsIndexed": "已索引",
-    "ftsNotIndexed": "未索引"
+    "ftsNotIndexed": "未索引",
+    "bindStoragePolicy": "绑定存储策略",
+    "bindStoragePolicyDescription": "新上传使用此策略，已有内容保留当前位置。",
+    "relocateStoragePolicy": "迁移存储策略",
+    "relocatePersonalRootDescription": "本项目支持个人盘根目录迁移：只迁移计划快照内的现有内容，未来上传偏好保持不变。个人盘根目录不能绑定存储策略。",
+    "relocateStoragePolicyDescription": "将已有内容迁移至另一存储策略，不修改后续上传偏好。",
+    "relocateTaskAccepted": "迁移任务已受理，可在后台任务中查看进度。",
+    "unavailableStorageDestination": "当前不可选的策略（{{id}}）",
+    "chooseStorageDestination": "选择迁移目的地",
+    "startStorageMigration": "创建迁移任务"
   },
   "modals": {
     "includePasswordInShareLink": "在链接中包含密码",
@@ -693,7 +702,11 @@
     "upyunUploadFailed": "上传失败：{{msg}}",
     "parseResponseError": "无法解析响应：{{msg}} ({{content}})",
     "concurrentTaskNumber": "同时上传的任务数量",
-    "dropFileHere": "松开鼠标开始上传"
+    "dropFileHere": "松开鼠标开始上传",
+    "automaticPolicy": "自动选择",
+    "automaticPolicyDestination": "当前目录的自动目的地：{{name}}",
+    "noAvailablePolicies": "没有可用存储策略",
+    "chooseFiles": "选择文件"
   },
   "share": {
     "statistics": "统计",
@@ -783,6 +796,12 @@
     "unknownSize": "未知文件大小"
   },
   "setting": {
+    "relocatedEntities": "已迁移实体",
+    "relocatedBytes": "已复制字节",
+    "failedMigrationEntities": "未成功实体",
+    "transferringRelocateDes": "复制并校验存储字节后切换引用。",
+    "relocateFinishing": "保留文件身份及后续上传偏好。",
+    "migrationPartialFailure": "已完成 {{completed}}；失败或未处理 {{failed}}。已提交的内容仍可访问。",
     "treeView": "树视图",
     "autoExpandTreeView": "自动展开树视图",
     "autoExpandTreeViewDes": "开启后，侧边栏的文件树会跟随当前目录并自动展开",

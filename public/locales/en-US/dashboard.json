@@ -1230,7 +1230,7 @@
     "nameOfGroup": "Name",
     "nameOfGroupDes": "Name of the group, used to display to users.",
     "availablePolicies": "Available storage policies",
-    "availablePoliciesDes": "Select the storage policies that this group can use. Modifying this setting will not affect the files uploaded by users.",
+    "availablePoliciesDes": "Select available storage policies. The first policy is the default for automatic placement.",
     "availablePolicyDesPro": "Multi-selectable, users can freely switch storage policies within the selected range.",
     "initialStorageQuota": "Initial storage quota",
     "initialStorageQuotaDes": "Max storage can used by single user under this group.",
@@ -1302,7 +1302,10 @@
     "notCopy": "Not copy",
     "confirmDelete": "Are you sure you want to delete group {{group}}?",
     "new": "New group",
-    "editGroup": "Edit {{group}}"
+    "editGroup": "Edit {{group}}",
+    "defaultPolicy": "Default",
+    "movePolicyUp": "Move {{name}} up",
+    "movePolicyDown": "Move {{name}} down"
   },
   "user": {
     "createdAt": "Created at",
