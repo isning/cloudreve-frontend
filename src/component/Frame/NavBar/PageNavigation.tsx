@@ -217,7 +217,6 @@ AdminNavigationItems = [
     label: "dashboard:nav.events",
     icon: [SendLoggingFilled, SendLogging],
     path: "/admin/event",
-    pro: true,
   },
   {
     label: "dashboard:nav.abuseReport",

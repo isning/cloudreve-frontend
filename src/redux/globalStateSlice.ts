@@ -233,6 +233,7 @@ export interface GlobalStateSlice {
 
   // Sidebar
   sidebarOpen?: boolean;
+  sidebarTab?: "details" | "activity";
   sidebarTarget?: FileResponse | string;
 
   // Viewers
@@ -746,9 +747,16 @@ export const globalStateSlice = createSlice({
     closeShareLinkDialog: (state) => {
       state.shareLinkDialogOpen = false;
     },
-    setSidebar: (state, action: PayloadAction<{ open: boolean; target?: FileResponse | string }>) => {
+    setSidebar: (
+      state,
+      action: PayloadAction<{ open: boolean; target?: FileResponse | string; tab?: "details" | "activity" }>,
+    ) => {
       state.sidebarOpen = action.payload.open;
       state.sidebarTarget = action.payload.target;
+      state.sidebarTab = action.payload.tab ?? "details";
+    },
+    setSidebarTab: (state, action: PayloadAction<"details" | "activity">) => {
+      state.sidebarTab = action.payload;
     },
     closeSidebar: (state) => {
       state.sidebarOpen = false;
@@ -919,6 +927,7 @@ export const {
   setRelocateDialog,
   closeVersionControlDialog,
   closeSidebar,
+  setSidebarTab,
   setSidebar,
   addShareInfo,
   setShareLinkDialog,

@@ -203,6 +203,13 @@ export const router = createBrowserRouter([
                 },
               },
               {
+                path: "event",
+                async lazy() {
+                  const { AuditLogList } = await import("../component/Admin/AdminBundle.tsx");
+                  return { Component: AuditLogList };
+                },
+              },
+              {
                 path: "share",
                 async lazy() {
                   let { ShareList } = await import("../component/Admin/AdminBundle.tsx");

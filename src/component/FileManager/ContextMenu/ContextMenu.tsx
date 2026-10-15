@@ -237,11 +237,19 @@ const ContextMenu = ({ fmIndex = 0 }: ContextMenuProps) => {
       {displayOpt.showRelocate && (
         <SquareMenuItem
           onClick={() => {
-            dispatch(setRelocateDialog({ files: targets.length ? targets : [parent!], index: fmIndex, owner: SessionManager.currentLoginOrNull()?.user.id ?? "" }));
+            dispatch(
+              setRelocateDialog({
+                files: targets.length ? targets : [parent!],
+                index: fmIndex,
+                owner: SessionManager.currentLoginOrNull()?.user.id ?? "",
+              }),
+            );
             onClose();
           }}
         >
-          <ListItemIcon><FolderArrowUp fontSize="small" /></ListItemIcon>
+          <ListItemIcon>
+            <FolderArrowUp fontSize="small" />
+          </ListItemIcon>
           <ListItemText>{t("application:fileManager.relocateStoragePolicy")}</ListItemText>
         </SquareMenuItem>
       )}
@@ -360,6 +368,14 @@ const ContextMenu = ({ fmIndex = 0 }: ContextMenuProps) => {
             <FolderOutlined fontSize="small" />
           </ListItemIcon>
           <ListItemText>{t("application:fileManager.openParentFolder")}</ListItemText>
+        </SquareMenuItem>
+      )}
+      {displayOpt.showInfo && displayOpt.allUpdatable && displayOpt.allReadable && (
+        <SquareMenuItem onClick={() => dispatch(openSidebar(fmIndex, targets[0], "activity"))}>
+          <ListItemIcon>
+            <HistoryOutlined fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>{t("application:fileManager.activity")}</ListItemText>
         </SquareMenuItem>
       )}
       {displayOpt.showInfo && (

@@ -1,3 +1,4 @@
+import AuditLogList from "./Event/AuditLogList";
 import EntitySetting from "./Entity/EntitySetting";
 import FileSetting from "./File/FileSetting";
 import FileSystem from "./FileSystem/Filesystem";
@@ -17,6 +18,7 @@ import TaskList from "./Task/TaskList";
 import UserSetting from "./User/UserSetting";
 
 export {
+  AuditLogList,
   EditGroup,
   EditNode,
   EditOAuthClient,

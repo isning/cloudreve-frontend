@@ -1054,5 +1054,24 @@
     },
     "release": "解除托管",
     "releaseConfirm": "解除托管后，此用户可通过密码恢复建立本地凭据。是否继续？"
+  },
+  "audit": {
+    "filter": "活动筛选",
+    "all": "全部活动",
+    "my": "我的活动",
+    "updates": "更改",
+    "reads": "读取",
+    "order": "更改活动排序",
+    "newest": "最新优先",
+    "oldest": "最早优先",
+    "anonymous": "匿名或已删除的用户",
+    "from": "来源",
+    "to": "目标",
+    "redacted": "无权查看此位置",
+    "openVersion": "打开此版本",
+    "empty": "暂无活动记录",
+    "loadFailed": "无法加载活动记录",
+    "loadMore": "加载更多",
+    "retry": "重试"
   }
 }

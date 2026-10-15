@@ -982,5 +982,24 @@
     "reportReasonOptions": ["انتهاك حقوق الطبع والنشر", "محتوى ضار", "غير المرغوب به", "أخرى"],
     "reportDescription": "وصف إضافي",
     "reportAbuseSuccess": "تم رفع التقرير."
+  },
+  "audit": {
+    "filter": "Activity filter",
+    "all": "All activity",
+    "my": "My activity",
+    "updates": "Updates",
+    "reads": "Reads",
+    "order": "Change activity order",
+    "newest": "Newest first",
+    "oldest": "Oldest first",
+    "anonymous": "Anonymous / deleted user",
+    "from": "From",
+    "to": "To",
+    "redacted": "Unavailable location",
+    "openVersion": "Open this version",
+    "empty": "No activity yet",
+    "loadFailed": "Could not load activity",
+    "loadMore": "Load more",
+    "retry": "Retry"
   }
 }

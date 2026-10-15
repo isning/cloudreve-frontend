@@ -7,13 +7,14 @@ import {
   FormGroup,
   Grid,
   Stack,
+  Switch,
   Typography,
 } from "@mui/material";
-import { useContext, useState } from "react";
+import { useContext } from "react";
 import { useTranslation } from "react-i18next";
 import { AuditLogType } from "../../../../api/explorer";
-import { ProChip } from "../../../Pages/Setting/SettingForm";
-import ProDialog from "../../Common/ProDialog";
+import Boolset from "../../../../util/boolset";
+import { getEventName } from "../../../../util/audit";
 import { NoMarginHelperText, SettingSection, SettingSectionContent } from "../Settings";
 import { SettingContext } from "../SettingWrapper";
 
@@ -123,35 +124,37 @@ export const eventCategories = {
   },
 };
 
-// Get event name from AuditLogType
-export const getEventName = (eventType: number): string => {
-  return Object.entries(AuditLogType).find(([_, value]) => value === eventType)?.[0] || `event_${eventType}`;
-};
-
 const Events = () => {
   const { t } = useTranslation("dashboard");
   const { formRef, setSettings, values } = useContext(SettingContext);
-  const [proOpen, setProOpen] = useState(false);
-
-  const handleProClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setProOpen(true);
+  const flags = new Boolset(values.audit_enabled_flags);
+  const setEvents = (events: number[], enabled: boolean) => {
+    for (const event of events) flags.set(event, enabled);
+    setSettings({ audit_enabled_flags: flags.toString() });
   };
 
   return (
     <Box component={"form"} ref={formRef} onSubmit={(e) => e.preventDefault()}>
-      <ProDialog open={proOpen} onClose={() => setProOpen(false)} />
       <Stack spacing={5}>
         <SettingSection>
           <Typography variant="h6" sx={{ display: "flex", alignItems: "center" }}>
-            {t("settings.auditLog")} <ProChip label="Pro" color="primary" size="small" />
+            {t("settings.auditLog")}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             {t("settings.auditLogDes")}
           </Typography>
 
+          <FormControlLabel
+            control={
+              <Switch
+                checked={values.audit_record_ip === "1"}
+                onChange={(_, checked) => setSettings({ audit_record_ip: checked ? "1" : "0" })}
+              />
+            }
+            label={t("audit.recordIP")}
+          />
           {Object.entries(eventCategories).map(([categoryKey, category]) => (
-            <SettingSection key={categoryKey} onClick={handleProClick}>
+            <SettingSection key={categoryKey}>
               <Box>
                 <Typography variant="subtitle1">{t(category.title)}</Typography>
                 <Typography variant="body2" color="text.secondary">
@@ -168,7 +171,17 @@ const Events = () => {
                           variant: "body2",
                         },
                       }}
-                      control={<Checkbox size={"small"} checked={false} />}
+                      control={
+                        <Checkbox
+                          size={"small"}
+                          checked={category.events.every((event) => flags.enabled(event))}
+                          indeterminate={
+                            category.events.some((event) => flags.enabled(event)) &&
+                            !category.events.every((event) => flags.enabled(event))
+                          }
+                          onChange={(_, checked) => setEvents(category.events, checked)}
+                        />
+                      }
                       label={t("settings.toggleAll")}
                     />
                     <NoMarginHelperText>{t("settings.toggleAllDes")}</NoMarginHelperText>
@@ -183,7 +196,13 @@ const Events = () => {
                             variant: "body2",
                           },
                         }}
-                        control={<Checkbox size={"small"} checked={false} />}
+                        control={
+                          <Checkbox
+                            size={"small"}
+                            checked={flags.enabled(eventType)}
+                            onChange={(_, checked) => setEvents([eventType], checked)}
+                          />
+                        }
                         label={t(`settings.event.${getEventName(eventType)}`, getEventName(eventType))}
                       />
                     </Grid>

@@ -1001,10 +1001,10 @@ export function goToSharedLink(index: number, file: FileResponse): AppThunk {
     }
   };
 }
-export function openSidebar(index: number, file: FileResponse): AppThunk {
+export function openSidebar(index: number, file: FileResponse, tab: "details" | "activity" = "details"): AppThunk {
   return async (dispatch, _getState) => {
     dispatch(closeContextMenu({ index, value: undefined }));
-    dispatch(setSidebar({ open: true, target: file }));
+    dispatch(setSidebar({ open: true, target: file, tab }));
   };
 }
 
