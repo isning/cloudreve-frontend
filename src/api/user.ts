@@ -94,6 +94,7 @@ export const GroupPermission = {
   relocate: 10,
   redirected_source: 11,
   advance_delete: 12,
+  set_anonymous_permission: 14,
   unique_direct_link: 17,
 };
 

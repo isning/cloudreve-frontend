@@ -24,7 +24,8 @@ import { openViewers } from "../../../redux/thunks/viewer.ts";
 import { sizeToString } from "../../../util";
 import AutoHeight from "../../Common/AutoHeight.tsx";
 import { closeVersionControlDialog } from "../../../redux/globalStateSlice.ts";
-import { Entity, EntityType, FileResponse } from "../../../api/explorer.ts";
+import { Entity, EntityType, FilePermission, FileResponse } from "../../../api/explorer.ts";
+import { hasPermission } from "../../../util/permission";
 import { deleteVersion, getFileInfo } from "../../../api/api.ts";
 import { NoWrapTableCell, StyledTableContainerPaper } from "../../Common/StyledComponents.tsx";
 import TimeBadge from "../../Common/TimeBadge.tsx";
@@ -181,16 +182,20 @@ const VersionControl = () => {
         <SquareMenuItem onClick={downloadEntity} dense>
           <ListItemText>{t("application:fileManager.download")}</ListItemText>
         </SquareMenuItem>
-        {target?.owned && actionTarget?.id !== fileExtended?.primary_entity && (
-          <SquareMenuItem onClick={setAsCurrent} dense>
-            <ListItemText>{t("application:fileManager.setAsCurrent")}</ListItemText>
-          </SquareMenuItem>
-        )}
-        {target?.owned && actionTarget?.id !== fileExtended?.primary_entity && (
-          <SquareMenuItem onClick={deleteTargetVersion} dense>
-            <ListItemText>{t("application:fileManager.delete")}</ListItemText>
-          </SquareMenuItem>
-        )}
+        {target &&
+          hasPermission(fileExtended ?? target, FilePermission.update) &&
+          actionTarget?.id !== fileExtended?.primary_entity && (
+            <SquareMenuItem onClick={setAsCurrent} dense>
+              <ListItemText>{t("application:fileManager.setAsCurrent")}</ListItemText>
+            </SquareMenuItem>
+          )}
+        {target &&
+          hasPermission(fileExtended ?? target, FilePermission.delete) &&
+          actionTarget?.id !== fileExtended?.primary_entity && (
+            <SquareMenuItem onClick={deleteTargetVersion} dense>
+              <ListItemText>{t("application:fileManager.delete")}</ListItemText>
+            </SquareMenuItem>
+          )}
       </Menu>
       <DraggableDialog
         title={t("application:fileManager.manageVersions")}

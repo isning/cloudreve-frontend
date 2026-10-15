@@ -186,6 +186,13 @@ const EmptyFileList = memo(
     const search_params = useAppSelector((state) => state.fileManager[fmIndex]?.search_params);
     const recursion_limit_reached = useAppSelector((state) => state.fileManager[fmIndex].list?.recursion_limit_reached);
     const capability = useAppSelector((state) => state.fileManager[fmIndex].list?.props.capability);
+    const parent = useAppSelector((state) => state.fileManager[fmIndex].list?.parent);
+    const isCollection =
+      currentFs === Filesystem.share &&
+      !!parent?.permission &&
+      new Boolset(parent.permission).enabled(2) &&
+      !new Boolset(parent.permission).enabled(0) &&
+      !new Boolset(parent.permission).enabled(5);
 
     const canCreate = useMemo(() => {
       const bs = new Boolset(capability);
@@ -215,8 +222,20 @@ const EmptyFileList = memo(
         {currentFs != Filesystem.shared_with_me && (
           <>
             <Nothing
-              primary={search_params || !canCreate ? t("fileManager.nothingFound") : t("fileManager.dropFileHere")}
-              secondary={search_params || !canCreate ? undefined : t("fileManager.orClickUploadButton")}
+              primary={
+                isCollection
+                  ? t("sharing.collection")
+                  : search_params || !canCreate
+                    ? t("fileManager.nothingFound")
+                    : t("fileManager.dropFileHere")
+              }
+              secondary={
+                isCollection
+                  ? t("sharing.collectionHint")
+                  : search_params || !canCreate
+                    ? undefined
+                    : t("fileManager.orClickUploadButton")
+              }
             />
             {recursion_limit_reached && <SearchLimitReached />}
           </>

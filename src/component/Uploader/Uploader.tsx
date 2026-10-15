@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 import { getAvailableStoragePolicies } from "../../api/api.ts";
 import { StoragePolicy } from "../../api/explorer.ts";
+import CrUri, { Filesystem } from "../../util/uri";
 import { useSnackbar } from "notistack";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -53,8 +54,6 @@ const Uploader = () => {
   const [choice, setChoice] = useState<{ owner: string; id: string }>({ owner: "", id: "" });
   const [loadingPolicies, setLoadingPolicies] = useState(false);
   const [selection, setSelection] = useState<{ path: string; type: SelectType }>();
-  const policies = destinations.owner === ownerID ? destinations.policies : [];
-  const choiceID = choice.owner === ownerID && policies.some((p) => p.id === choice.id) ? choice.id : "";
 
   const uploadEnabled = useRef<boolean>(false);
 
@@ -63,6 +62,16 @@ const Uploader = () => {
   const parent = useAppSelector((state) => state.fileManager[FileManagerIndex.main].list?.parent);
   const path = useAppSelector((state) => state.fileManager[FileManagerIndex.main].pure_path);
   const policy = useAppSelector((state) => state.fileManager[FileManagerIndex.main].list?.storage_policy);
+  const sharedDestination = !!path && new CrUri(path).fs() === Filesystem.share;
+  const policies = sharedDestination
+    ? policy
+      ? [policy]
+      : []
+    : destinations.owner === ownerID
+      ? destinations.policies
+      : [];
+  const choiceID =
+    !sharedDestination && choice.owner === ownerID && policies.some((p) => p.id === choice.id) ? choice.id : "";
   const automaticDestination = policies.find((p) => p.id === policy?.id) ?? policies[0];
   const selectFileSignal = useAppSelector((state) => state.globalState.uploadFileSignal);
   const selectFolderSignal = useAppSelector((state) => state.globalState.uploadFolderSignal);
@@ -133,7 +142,7 @@ const Uploader = () => {
       onPoolEmpty: () => {
         setTimeout(() => {
           dispatch(refreshFileList(0));
-          dispatch(updateUserCapacity(0));
+          if (SessionManager.currentLoginOrNull()) dispatch(updateUserCapacity(0));
         }, 1000);
       },
     });
@@ -144,7 +153,7 @@ const Uploader = () => {
     setChoice({ owner: ownerID, id: "" });
     setSelection(undefined);
     setLoadingPolicies(true);
-    if (!ownerID) {
+    if (!ownerID || sharedDestination) {
       setDestinations({ owner: ownerID, policies: [] });
       setLoadingPolicies(false);
       return;
@@ -162,7 +171,7 @@ const Uploader = () => {
     return () => {
       active = false;
     };
-  }, [ownerID, dispatch]);
+  }, [ownerID, sharedDestination, dispatch]);
 
   useEffect(() => {
     uploadManager.setPolicy(
@@ -345,7 +354,7 @@ const Uploader = () => {
                 : undefined
             }
             value={choiceID}
-            disabled={loadingPolicies || !policies.length}
+            disabled={sharedDestination || loadingPolicies || !policies.length}
             onChange={(event) => setChoice({ owner: ownerID, id: event.target.value })}
           >
             <MenuItem value="">{t("uploader.automaticPolicy")}</MenuItem>

@@ -43,6 +43,12 @@ const ShareSection = () => {
     e.stopPropagation();
     setProOpen(true);
   };
+  const onAnonymousPermissionChange = (_: React.ChangeEvent<HTMLInputElement>, checked: boolean) => {
+    setGroup((current: GroupEnt) => ({
+      ...current,
+      permissions: new Boolset(current.permissions).set(GroupPermission.set_anonymous_permission, checked).toString(),
+    }));
+  };
 
   return (
     <SettingSection>
@@ -91,15 +97,15 @@ const ShareSection = () => {
         </SettingForm>
         {values?.id != AnonymousGroupID && (
           <SettingForm lgWidth={5}>
-            <FormControl fullWidth onClick={onProClick}>
+            <FormControl fullWidth>
               <FormControlLabel
-                control={<Switch checked={false} />}
-                label={
-                  <Box sx={{ display: "flex", alignItems: "center" }}>
-                    {t("group.esclateAnonymity")}
-                    <ProChip size="small" label="Pro" />
-                  </Box>
+                control={
+                  <Switch
+                    checked={permission.enabled(GroupPermission.set_anonymous_permission)}
+                    onChange={onAnonymousPermissionChange}
+                  />
                 }
+                label={t("group.esclateAnonymity")}
               />
               <NoMarginHelperText>{t("group.esclateAnonymityDes")}</NoMarginHelperText>
             </FormControl>

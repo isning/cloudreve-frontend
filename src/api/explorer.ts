@@ -19,6 +19,7 @@ export const FileType = {
 };
 
 export interface FileResponse {
+  permission?: string;
   type: number;
   id: string;
   name: string;
@@ -46,6 +47,7 @@ export interface FolderSummary {
 }
 
 export interface ExtendedInfo {
+  permissions?: PermissionSetting;
   storage_policy?: StoragePolicy;
   storage_used: number;
   shares?: Share[];
@@ -72,6 +74,8 @@ export interface Entity {
 }
 
 export interface Share {
+  permissions?: string;
+  permission_setting?: PermissionSetting;
   id: string;
   name?: string;
   expires?: string;
@@ -305,6 +309,7 @@ export interface PatchMetadataService extends MultipleUriService {
 }
 
 export interface ShareCreateService {
+  permissions?: PermissionSetting;
   uri: string;
   downloads?: number;
   is_private?: boolean;
@@ -313,6 +318,17 @@ export interface ShareCreateService {
   share_view?: boolean;
   show_readme?: boolean;
 }
+
+export interface PermissionSetting {
+  user_explicit?: Record<string, string>;
+  group_explicit?: Record<string, string>;
+  same_group?: string;
+  other?: string;
+  anonymous?: string;
+  everyone?: string;
+}
+
+export const FilePermission = { read: 0, update: 1, create: 2, delete: 3, share: 4, list: 5 } as const;
 
 export interface CreateFileService {
   uri: string;

@@ -8,6 +8,7 @@ import { FileResponse } from "../../../api/explorer.ts";
 import useActionDisplayOpt from "../ContextMenu/useActionDisplayOpt.ts";
 import Details from "./Details.tsx";
 import Header from "./Header.tsx";
+import SessionManager from "../../../session";
 
 export interface SidebarContentProps {
   target: FileResponse | undefined | null;
@@ -43,7 +44,10 @@ const SidebarContent = ({ target, inPhotoViewer, setTarget }: SidebarContentProp
   const tab = useAppSelector((state) => state.globalState.sidebarTab) === "activity" ? 1 : 0;
   const targetDisplayOptions = useActionDisplayOpt(target ? [target] : []);
   const canViewActivities =
-    targetDisplayOptions.showInfo && targetDisplayOptions.allReadable && targetDisplayOptions.allUpdatable;
+    !!SessionManager.currentLoginOrNull() &&
+    targetDisplayOptions.showInfo &&
+    targetDisplayOptions.allReadable &&
+    targetDisplayOptions.allUpdatable;
   return (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <Header target={target} />

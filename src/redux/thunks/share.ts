@@ -25,6 +25,7 @@ export function createOrUpdateShareLink(
 ): AppThunk<Promise<string>> {
   return async (dispatch, getState) => {
     const req: ShareCreateService = {
+      permissions: setting.permissions,
       uri: file.path,
       is_private: setting.is_private,
       password: setting.password,

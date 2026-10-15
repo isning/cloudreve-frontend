@@ -1,7 +1,9 @@
 import { DialogContent, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { useCallback, useMemo, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
-import { FileResponse, FileType } from "../../../api/explorer.ts";
+import { FilePermission, FileResponse, FileType } from "../../../api/explorer.ts";
+import { hasPermission } from "../../../util/permission";
+import { FileManagerIndex } from "../FileManager";
 import { closePathSelectionDialog } from "../../../redux/globalStateSlice.ts";
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks.ts";
 import { pathSelectionDialogPromisePool } from "../../../redux/thunks/dialog.ts";
@@ -130,6 +132,7 @@ const PathSelection = () => {
   );
 
   const [selectedFile, selectedPath] = useFolderSelector();
+  const parent = useAppSelector((state) => state.fileManager[FileManagerIndex.selector].list?.parent);
 
   const onClose = useCallback(() => {
     dispatch(closePathSelectionDialog());
@@ -148,6 +151,13 @@ const PathSelection = () => {
   }, [dispatch, selectedPath, promiseId]);
 
   const disabled = useMemo(() => {
+    const destination = selectedFile ?? parent;
+    if (
+      variant !== "searchIn" &&
+      variant !== "davAccountRoot" &&
+      (!destination || !hasPermission(destination, FilePermission.create))
+    )
+      return true;
     const dst = selectedPath;
     if (dst) {
       const crUri = new CrUri(dst);
@@ -160,7 +170,7 @@ const PathSelection = () => {
     }
 
     return !selectedPath;
-  }, [selectedPath, variantProps]);
+  }, [selectedPath, selectedFile, parent, variantProps, variant]);
 
   return (
     <DraggableDialog

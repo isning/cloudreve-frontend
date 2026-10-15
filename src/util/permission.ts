@@ -1,20 +1,35 @@
-import { FileResponse } from "../api/explorer.ts";
-import CrUri, { Filesystem } from "./uri.ts";
+import { FilePermission, FileResponse } from "../api/explorer";
+import Boolset from "./boolset";
+import CrUri, { Filesystem } from "./uri";
 
-// canCopyMoveTo checks if the files can be copied or moved to the destination.
+// Filesystem compatibility is separate from the destination's create grant,
+// which is checked by the selector and revalidated by the server.
 export function canCopyMoveTo(files: FileResponse[], dst: string, isCopy: boolean): boolean {
-  const dstUri = new CrUri(dst);
-  const srcUri = new CrUri(files[0].path);
-  if (isCopy) {
-    return srcUri.fs() == dstUri.fs() && srcUri.fs() == Filesystem.my;
-  } else {
-    switch (srcUri.fs()) {
-      case Filesystem.my:
-        return dstUri.fs() == Filesystem.my || dstUri.fs() == Filesystem.trash;
-      case Filesystem.trash:
-        return dstUri.fs() == Filesystem.my;
-    }
-  }
+  if (
+    !files.length ||
+    !files.every((file) => hasPermission(file, isCopy ? FilePermission.read : FilePermission.delete))
+  )
+    return false;
+  const dstFs = new CrUri(dst).fs();
+  return files.every((file) => {
+    const srcFs = new CrUri(file.path).fs();
+    if (
+      (srcFs === Filesystem.my || srcFs === Filesystem.share) &&
+      (dstFs === Filesystem.my || dstFs === Filesystem.share)
+    )
+      return true;
+    return (
+      !isCopy &&
+      ((srcFs === Filesystem.my && dstFs === Filesystem.trash) ||
+        (srcFs === Filesystem.trash && dstFs === Filesystem.my))
+    );
+  });
+}
 
-  return false;
+export function hasPermission(file: Pick<FileResponse, "permission">, permission: number) {
+  return file.permission == null || new Boolset(file.permission).enabled(permission);
+}
+
+export function canList(file: Pick<FileResponse, "permission">) {
+  return hasPermission(file, FilePermission.read) || hasPermission(file, FilePermission.list);
 }

@@ -19,7 +19,8 @@ import MuiAccordionDetails from "@mui/material/AccordionDetails";
 import MuiAccordionSummary from "@mui/material/AccordionSummary";
 import { useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
-import { FileResponse, FileType } from "../../../../api/explorer.ts";
+import { FileResponse, FileType, PermissionSetting } from "../../../../api/explorer.ts";
+import PermissionEditor, { defaultSharePermissions } from "./PermissionEditor";
 import { Code } from "../../../Common/Code.tsx";
 import { FilledTextField, SmallFormControlLabel } from "../../../Common/StyledComponents.tsx";
 import BookInformation from "../../../Icons/BookInformation.tsx";
@@ -74,6 +75,7 @@ const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({
 const StyledListItemButton = styled(ListItemButton)(() => ({}));
 
 export interface ShareSetting {
+  permissions?: PermissionSetting;
   is_private?: boolean;
   use_custom_password?: boolean;
   password?: string;
@@ -146,6 +148,11 @@ const ShareSettingContent = ({ setting, file, editing, onSettingChange }: ShareS
         padding: 0,
       }}
     >
+      <PermissionEditor
+        value={setting.permissions ?? defaultSharePermissions()}
+        folder={file?.type !== FileType.file}
+        onChange={(permissions) => onSettingChange({ ...setting, permissions })}
+      />
       <Accordion expanded={expanded === "is_private"} onChange={handleExpand("is_private")}>
         <AccordionSummary aria-controls="panel1a-content" id="panel1a-header">
           <StyledListItemButton>

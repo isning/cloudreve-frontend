@@ -10,6 +10,7 @@ import Data from "./Data.tsx";
 import MediaInfo from "./MediaInfo.tsx";
 import Tags from "./Tags.tsx";
 import { DisplayOption } from "../ContextMenu/useActionDisplayOpt.ts";
+import FilePermissions from "../Dialogs/FilePermissions";
 
 export interface DetailsProps {
   inPhotoViewer?: boolean;
@@ -59,6 +60,7 @@ const Details = ({ target, inPhotoViewer, setTarget, targetDisplayOptions }: Det
       <MediaInfo target={target} />
       <CustomProps file={target} setTarget={setTarget} targetDisplayOptions={targetDisplayOptions} />
       <BasicInfo target={target} />
+      <FilePermissions target={target} onSaved={setTarget} />
       <Tags target={target} />
       <Data target={target} />
     </Stack>

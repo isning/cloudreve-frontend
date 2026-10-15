@@ -16,8 +16,10 @@ import CopyOutlined from "../../../Icons/CopyOutlined.tsx";
 import Share from "../../../Icons/Share.tsx";
 import { FileManagerIndex } from "../../FileManager.tsx";
 import ShareSettingContent, { downloadOptions, expireOptions, ShareSetting } from "./ShareSetting.tsx";
+import { defaultSharePermissions } from "./PermissionEditor";
 
 const initialSetting: ShareSetting = {
+  permissions: defaultSharePermissions(),
   expires_val: expireOptions[2],
   downloads_val: downloadOptions[0],
 };
@@ -29,6 +31,7 @@ interface ShareLinkPassword {
 
 const shareToSetting = (share: ShareModel, t: TFunction): ShareSetting => {
   const res: ShareSetting = {
+    permissions: share.permission_setting ?? defaultSharePermissions(),
     is_private: share.is_private,
     password: share.password,
     use_custom_password: true,
@@ -160,7 +163,7 @@ const ShareDialog = () => {
           open: open ?? false,
           onClose: onClose,
           fullWidth: true,
-          maxWidth: "xs",
+          maxWidth: "sm",
         }}
         cancelText={shareLink ? t("common:close") : undefined}
         secondaryAction={

@@ -370,14 +370,17 @@ const ContextMenu = ({ fmIndex = 0 }: ContextMenuProps) => {
           <ListItemText>{t("application:fileManager.openParentFolder")}</ListItemText>
         </SquareMenuItem>
       )}
-      {displayOpt.showInfo && displayOpt.allUpdatable && displayOpt.allReadable && (
-        <SquareMenuItem onClick={() => dispatch(openSidebar(fmIndex, targets[0], "activity"))}>
-          <ListItemIcon>
-            <HistoryOutlined fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>{t("application:fileManager.activity")}</ListItemText>
-        </SquareMenuItem>
-      )}
+      {SessionManager.currentLoginOrNull() &&
+        displayOpt.showInfo &&
+        displayOpt.allUpdatable &&
+        displayOpt.allReadable && (
+          <SquareMenuItem onClick={() => dispatch(openSidebar(fmIndex, targets[0], "activity"))}>
+            <ListItemIcon>
+              <HistoryOutlined fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>{t("application:fileManager.activity")}</ListItemText>
+          </SquareMenuItem>
+        )}
       {displayOpt.showInfo && (
         <SquareMenuItem onClick={() => dispatch(openSidebar(fmIndex, targets[0]))}>
           <ListItemIcon>

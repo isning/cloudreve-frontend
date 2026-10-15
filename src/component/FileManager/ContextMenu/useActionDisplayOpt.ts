@@ -1,7 +1,7 @@
 import { useMemo } from "react";
-import { FileResponse, FileType, Metadata, NavigatorCapability } from "../../../api/explorer.ts";
+import { FilePermission, FileResponse, FileType, Metadata, NavigatorCapability } from "../../../api/explorer.ts";
+import { canList, hasPermission } from "../../../util/permission";
 import { GroupPermission } from "../../../api/user.ts";
-import { defaultPath } from "../../../hooks/useNavigation.tsx";
 import { ContextMenuTypes } from "../../../redux/fileManagerSlice.ts";
 import { Viewers, ViewersByID } from "../../../redux/siteConfigSlice.ts";
 import { ExpandedViewerSetting } from "../../../redux/thunks/viewer.ts";
@@ -35,6 +35,7 @@ export const canUpdate = (opt: DisplayOption) => {
 };
 
 export interface DisplayOption {
+  hasDeletable?: boolean;
   allReadable: boolean;
   allUpdatable: boolean;
 
@@ -134,9 +135,11 @@ export const getActionOpt = (
       !parentUri.is_search() &&
       (!parentUri.id() || parentUri.id() === currentUser.user.id);
     const parentCap = new Boolset(parent.capability);
-    display.showCreateFolder = parentCap.enabled(NavigatorCapability.create_file) && parent.owned;
+    const canCreate =
+      parentCap.enabled(NavigatorCapability.create_file) && hasPermission(parent, FilePermission.create);
+    display.showCreateFolder = canCreate && canList(parent);
     display.showCreateFile = display.showCreateFolder && fmIndex == FileManagerIndex.main;
-    display.showUpload = display.showCreateFile;
+    display.showUpload = canCreate && fmIndex === FileManagerIndex.main;
     if (display.showCreateFile) {
       const allViewers = Object.entries(ViewersByID);
       for (let i = 0; i < allViewers.length; i++) {
@@ -154,10 +157,10 @@ export const getActionOpt = (
     display.showGoToParent = true;
   }
 
-  const parentUrl = new CrUri(targets?.[0]?.path ?? defaultPath);
   targets.forEach((target) => {
-    let readable = true;
-    let updatable = target.owned && parentUrl.fs() != Filesystem.share;
+    const readable = hasPermission(target, FilePermission.read);
+    const updatable = hasPermission(target, FilePermission.update);
+    display.hasDeletable ||= hasPermission(target, FilePermission.delete);
 
     if (display.allReadable && !readable) {
       display.allReadable = false;
@@ -217,7 +220,7 @@ export const getActionOpt = (
   const firstFileSuffix = fileExtension(targets[0]?.name ?? "");
   display.showPin = !display.hasTrashFile && targets.length == 1 && display.hasFolder;
   display.showDelete =
-    display.hasUpdatable &&
+    display.hasDeletable &&
     display.orCapability &&
     (display.orCapability.enabled(NavigatorCapability.soft_delete) ||
       display.orCapability.enabled(NavigatorCapability.delete_file));
@@ -227,18 +230,17 @@ export const getActionOpt = (
     display.allUpdatable &&
     display.orCapability &&
     display.orCapability.enabled(NavigatorCapability.rename_file);
-  display.showCopy = display.hasUpdatable && !!display.orCapability;
+  display.showCopy = display.hasReadable && !!display.orCapability;
   display.showShare =
     targets.length == 1 &&
     !!currentUser &&
     groupBs.enabled(GroupPermission.share) &&
-    display.allUpdatable &&
-    (targets[0].owned || groupBs.enabled(GroupPermission.is_admin)) &&
+    hasPermission(targets[0], FilePermission.share) &&
     display.orCapability &&
     display.orCapability.enabled(NavigatorCapability.share) &&
     (!targets[0].metadata ||
       (!targets[0].metadata[Metadata.share_redirect] && !targets[0].metadata[Metadata.restore_uri]));
-  display.showMove = display.hasUpdatable && !!display.orCapability;
+  display.showMove = display.hasDeletable && !!display.orCapability;
   display.showTags =
     display.hasUpdatable && display.orCapability && display.orCapability.enabled(NavigatorCapability.update_metadata);
   display.showChangeFolderColor =
@@ -268,7 +270,7 @@ export const getActionOpt = (
     targets.length == 1 &&
     display.hasFolder &&
     display.orCapability?.enabled(NavigatorCapability.enter_folder) &&
-    display.allReadable;
+    targets.every(canList);
   display.showExtractArchive =
     targets.length == 1 &&
     display.hasFile &&
