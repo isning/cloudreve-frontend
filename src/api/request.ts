@@ -134,16 +134,19 @@ export const Code = {
   Success: 0,
   Continue: 203,
   GroupNotAllowed: 40007,
+  ParentNotExist: 40016,
   CredentialInvalid: 40020,
   IncorrectPassword: 40069,
   LockConflict: 40073,
   StaleVersion: 40076,
   BatchOperationNotFullyCompleted: 40081,
+  OwnerOnly: 40082,
   DomainNotLicensed: 40087,
   AnonymouseAccessDenied: 40088,
   CodeLoginRequired: 401,
   PermissionDenied: 403,
   NodeFound: 404,
+  Conflict: 409,
 };
 
 export const CrHeaderPrefix = "X-Cr-";
@@ -151,7 +154,7 @@ export const CrHeaders = {
   context_hint: CrHeaderPrefix + "Context-Hint",
 };
 
-function getAccessToken(): AppThunk<Promise<string | undefined>> {
+export function getAccessToken(): AppThunk<Promise<string | undefined>> {
   return async (dispatch, _getState) => {
     try {
       const accessToken = await SessionManager.getAccessToken();

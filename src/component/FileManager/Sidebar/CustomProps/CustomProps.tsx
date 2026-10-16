@@ -50,6 +50,7 @@ const CustomProps = ({ file, setTarget, targetDisplayOptions }: CustomPropsProps
   }, [existingProps]);
 
   const handlePropPatch = (remove?: boolean) => (props: CustomPropsItem[]) => {
+    if (!targetDisplayOptions?.showCustomProps) return;
     setLoading(true);
     dispatch(
       sendMetadataPatch({

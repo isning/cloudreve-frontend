@@ -1,8 +1,14 @@
 import { Box, Divider, ListItemIcon, ListItemText, Menu, MenuItem, styled, Typography, useTheme } from "@mui/material";
-import { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { closeContextMenu } from "../../../redux/fileManagerSlice.ts";
-import { CreateNewDialogType, setBindPolicyDialog, setRelocateDialog } from "../../../redux/globalStateSlice.ts";
+import {
+  CreateNewDialogType,
+  setBindPolicyDialog,
+  setRelocateDialog,
+  setFilePermissionDialog,
+} from "../../../redux/globalStateSlice.ts";
+import { GroupPermission } from "../../../api/user.ts";
 import SessionManager from "../../../session";
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks.ts";
 import { downloadFiles } from "../../../redux/thunks/download.ts";
@@ -120,7 +126,16 @@ const ContextMenu = ({ fmIndex = 0 }: ContextMenuProps) => {
     displayOpt.showTorrentRemoteDownload ||
     displayOpt.showExtractArchive ||
     displayOpt.showUpload;
+  const showPermissions =
+    targets.length > 0 &&
+    targets.length <= 1000 &&
+    targets.every(
+      (file) =>
+        !file.metadata?.["sys:shared_redirect"] &&
+        (file.owned || SessionManager.currentUserGroupPermission().enabled(GroupPermission.is_admin)),
+    );
   let part2 =
+    showPermissions ||
     displayOpt.showCreateFolder ||
     displayOpt.showCreateFile ||
     displayOpt.showShare ||
@@ -234,6 +249,25 @@ const ContextMenu = ({ fmIndex = 0 }: ContextMenuProps) => {
 
   const part2Elements = part2 ? (
     <>
+      {showPermissions && (
+        <SquareMenuItem
+          onClick={() => {
+            dispatch(
+              setFilePermissionDialog({
+                files: targets,
+                index: fmIndex,
+                owner: SessionManager.currentLoginOrNull()?.user.id ?? "",
+              }),
+            );
+            onClose();
+          }}
+        >
+          <ListItemIcon>
+            <WrenchSettings fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>{t("application:fileManager.permissions")}</ListItemText>
+        </SquareMenuItem>
+      )}
       {displayOpt.showRelocate && (
         <SquareMenuItem
           onClick={() => {

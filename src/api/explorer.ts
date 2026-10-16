@@ -47,6 +47,15 @@ export interface FolderSummary {
 }
 
 export interface ExtendedInfo {
+  // CCSN extension; only the file owner and administrators receive diagnostics.
+  permission_context?: {
+    extension: "ccsn";
+    source: "entry" | "explicit" | "ancestor" | "link";
+    source_uri?: string;
+    effective: string;
+    matched_rule: string;
+    context_dependent?: boolean;
+  };
   permissions?: PermissionSetting;
   storage_policy?: StoragePolicy;
   storage_used: number;

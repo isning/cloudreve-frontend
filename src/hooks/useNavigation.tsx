@@ -20,6 +20,7 @@ const useNavigation = (index: number, initialPath?: string) => {
   const dispatch = useAppDispatch();
   const query = useQuery();
   const path = useAppSelector((s) => s.fileManager[index].path);
+  const listPath = useAppSelector((s) => s.fileManager[index].listPath);
 
   // Update path in redux when path in query changes
   if (index === FileManagerIndex.main) {
@@ -36,13 +37,19 @@ const useNavigation = (index: number, initialPath?: string) => {
   // When path state changed, dispatch to load file list
   useEffect(() => {
     if (path) {
-      dispatch(navigateReconcile(index)).then(() => {
-        dispatch(checkReadMeEnabled(index));
-        dispatch(checkOpenViewerQuery(index));
-      });
+      dispatch(navigateReconcile(index));
       dispatch(beforePathChange(index));
     }
   }, [path]);
+
+  // Only an accepted list can complete navigation. Superseded request promises
+  // must not consume a newer view's file-open query against retained rows.
+  useEffect(() => {
+    if (path && listPath === path) {
+      dispatch(checkReadMeEnabled(index));
+      dispatch(checkOpenViewerQuery(index));
+    }
+  }, [path, listPath, index, dispatch]);
 };
 
 export default useNavigation;

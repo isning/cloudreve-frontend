@@ -17,6 +17,7 @@ export interface DetailsProps {
   target: FileResponse;
   setTarget: (target: FileResponse | undefined | null) => void;
   targetDisplayOptions?: DisplayOption;
+  validating?: boolean;
 }
 
 const InfoBlock = ({ title, children }: { title: string; children: React.ReactNode }) => {
@@ -30,7 +31,7 @@ const InfoBlock = ({ title, children }: { title: string; children: React.ReactNo
   );
 };
 
-const Details = ({ target, inPhotoViewer, setTarget, targetDisplayOptions }: DetailsProps) => {
+const Details = ({ target, inPhotoViewer, setTarget, targetDisplayOptions, validating }: DetailsProps) => {
   const dispatch = useAppDispatch();
   const [thumbSrc, setThumbSrc] = useState<string | null>(null);
   useEffect(() => {
@@ -60,9 +61,9 @@ const Details = ({ target, inPhotoViewer, setTarget, targetDisplayOptions }: Det
       <MediaInfo target={target} />
       <CustomProps file={target} setTarget={setTarget} targetDisplayOptions={targetDisplayOptions} />
       <BasicInfo target={target} />
-      <FilePermissions target={target} onSaved={setTarget} />
+      <FilePermissions target={target} onSaved={setTarget} disabled={validating} />
       <Tags target={target} />
-      <Data target={target} />
+      <Data target={target} targetDisplayOptions={targetDisplayOptions} />
     </Stack>
   );
 };

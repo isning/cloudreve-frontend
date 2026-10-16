@@ -11,6 +11,7 @@ export enum CaptchaType {
 }
 
 export interface SiteConfig {
+  shared_with_me_acl?: boolean;
   login_providers?: import("./openid.ts").LoginProvider[];
   instance_id?: string;
   title?: string;

@@ -1,12 +1,11 @@
 import { Dialog, Slide } from "@mui/material";
 import { TransitionProps } from "@mui/material/transitions";
-import { forwardRef, useCallback, useEffect, useState } from "react";
-import { getFileInfo } from "../../../api/api.ts";
-import { FileResponse } from "../../../api/explorer.ts";
+import { forwardRef } from "react";
 import { closeSidebar } from "../../../redux/globalStateSlice.ts";
-import { useAppDispatch, useAppSelector } from "../../../redux/hooks.ts";
-import { SideBarProps } from "./Sidebar.tsx";
+import { useAppDispatch } from "../../../redux/hooks.ts";
+import type { SideBarProps } from "./Sidebar.tsx";
 import SidebarContent from "./SidebarContent.tsx";
+import useSidebarDetails from "./useSidebarDetails.ts";
 
 const Transition = forwardRef(function Transition(
   props: TransitionProps & {
@@ -19,36 +18,7 @@ const Transition = forwardRef(function Transition(
 
 const SidebarDialog = ({ inPhotoViewer }: SideBarProps) => {
   const dispatch = useAppDispatch();
-  const sidebarOpen = useAppSelector((state) => state.globalState.sidebarOpen);
-  const sidebarTarget = useAppSelector((state) => state.globalState.sidebarTarget);
-  // null: not valid, undefined: not loaded, FileResponse: loaded
-  const [target, setTarget] = useState<FileResponse | undefined | null>(undefined);
-
-  const loadExtendedInfo = useCallback(
-    (path: string) => {
-      dispatch(
-        getFileInfo({
-          uri: path,
-          extended: true,
-        }),
-      ).then((res) => {
-        setTarget((r) => ({ ...res, capability: r?.capability }));
-      });
-    },
-    [target, dispatch, setTarget],
-  );
-
-  useEffect(() => {
-    if (sidebarTarget && sidebarOpen) {
-      if (typeof sidebarTarget === "string") {
-      } else {
-        setTarget(sidebarTarget);
-        loadExtendedInfo(sidebarTarget.path);
-      }
-    } else {
-      setTarget(null);
-    }
-  }, [sidebarTarget, setTarget]);
+  const { sidebarOpen, target, setTarget, validating } = useSidebarDetails();
 
   return (
     <Dialog
@@ -59,7 +29,7 @@ const SidebarDialog = ({ inPhotoViewer }: SideBarProps) => {
         dispatch(closeSidebar());
       }}
     >
-      <SidebarContent inPhotoViewer={inPhotoViewer} target={target} setTarget={setTarget} />
+      <SidebarContent inPhotoViewer={inPhotoViewer} target={target} setTarget={setTarget} validating={validating} />
     </Dialog>
   );
 };

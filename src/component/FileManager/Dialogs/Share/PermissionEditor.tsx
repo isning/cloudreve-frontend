@@ -16,9 +16,9 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { getSearchUser } from "../../../../api/api";
+import { getSearchUser, getUserInfo } from "../../../../api/api";
 import { FilePermission, PermissionSetting } from "../../../../api/explorer";
 import { getPermissionGroups, PermissionGroup } from "../../../../api/permission";
 import { GroupPermission, User } from "../../../../api/user";
@@ -52,6 +52,11 @@ export default function PermissionEditor({
   const [advanced, setAdvanced] = useState(false);
   const [groups, setGroups] = useState<PermissionGroup[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [knownUsers, setKnownUsers] = useState<Record<string, User>>({});
+  const owner = SessionManager.currentLoginOrNull()?.user.id;
+  const explicitUsers = Object.keys(value.user_explicit ?? {})
+    .sort()
+    .join(",");
   const [keyword, setKeyword] = useState("");
   const [loading, setLoading] = useState(false);
   const [lookupFailed, setLookupFailed] = useState(false);
@@ -83,7 +88,28 @@ export default function PermissionEditor({
     return () => {
       active = false;
     };
-  }, [advanced, dispatch]);
+  }, [advanced, dispatch, owner]);
+  useEffect(() => {
+    let active = true;
+    setKnownUsers({});
+    if (advanced && explicitUsers) {
+      const ids = explicitUsers.split(",");
+      void (async () => {
+        for (let i = 0; i < ids.length && active; i += 8) {
+          const results = await Promise.allSettled(ids.slice(i, i + 8).map((id) => dispatch(getUserInfo(id))));
+          if (!active || SessionManager.currentLoginOrNull()?.user.id !== owner) return;
+          const found: Record<string, User> = {};
+          results.forEach((result) => {
+            if (result.status === "fulfilled") found[result.value.id] = result.value;
+          });
+          setKnownUsers((current) => ({ ...current, ...found }));
+        }
+      })();
+    }
+    return () => {
+      active = false;
+    };
+  }, [advanced, explicitUsers, owner, dispatch]);
   useEffect(() => {
     let active = true;
     setUsers([]);
@@ -108,7 +134,7 @@ export default function PermissionEditor({
       active = false;
       clearTimeout(timer);
     };
-  }, [advanced, keyword, dispatch]);
+  }, [advanced, keyword, dispatch, owner]);
 
   const rules = useMemo(() => {
     const result: Rule[] = (["everyone", "anonymous", "same_group", "other"] as BaseRule[]).map((base) => ({
@@ -126,10 +152,15 @@ export default function PermissionEditor({
       }),
     );
     Object.entries(value.user_explicit ?? {}).forEach(([key, grant]) =>
-      result.push({ key, map: "user_explicit", value: grant, label: `${t("sharing.user")} ${key}` }),
+      result.push({
+        key,
+        map: "user_explicit",
+        value: grant,
+        label: knownUsers[key] ? `${knownUsers[key].nickname} (${key})` : `${t("sharing.user")} ${key}`,
+      }),
     );
     return result;
-  }, [value, groups, t]);
+  }, [value, groups, knownUsers, t]);
   const setRule = (rule: Rule, grant?: string) => {
     if (rule.map) {
       const updated = { ...value[rule.map] };

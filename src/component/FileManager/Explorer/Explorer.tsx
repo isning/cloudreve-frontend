@@ -16,6 +16,7 @@ import { Layouts } from "../../../redux/fileManagerSlice.ts";
 import { SearchParam } from "../../../util/uri.ts";
 import { FileManagerIndex } from "../FileManager.tsx";
 import { FmIndexContext } from "../FmIndexContext.tsx";
+import DiscoveryContinuation from "./DiscoveryContinuation";
 import EmptyFileList, { SearchLimitReached } from "./EmptyFileList.tsx";
 import GalleryView from "./GalleryView/GalleryView.tsx";
 import { ListViewColumn } from "./ListView/Column.tsx";
@@ -30,6 +31,7 @@ export const ExplorerPage = {
   Empty: 4,
   ListView: 5,
   GalleryView: 6,
+  More: 7,
 };
 
 export interface FileBlockProps {
@@ -55,6 +57,7 @@ const Explorer = () => {
   const showError = useAppSelector((state) => state.fileManager[fmIndex].showError);
   const singleFileView = useAppSelector((state) => state.fileManager[fmIndex].list?.single_file_view);
   const explorerConfigLoading = useAppSelector((state) => state.siteConfig.explorer.loaded);
+  const nextToken = useAppSelector((state) => state.fileManager[fmIndex].list?.pagination.next_token);
   const files = useAppSelector((state) => state.fileManager[fmIndex].list?.files);
   const recursion_limit_reached = useAppSelector((state) => state.fileManager[fmIndex].list?.recursion_limit_reached);
   const layout = useAppSelector((state) => state.fileManager[fmIndex].layout);
@@ -72,7 +75,7 @@ const Explorer = () => {
       return ExplorerPage.Loading;
     } else {
       if (files?.length === 0) {
-        return ExplorerPage.Empty;
+        return nextToken ? ExplorerPage.More : ExplorerPage.Empty;
       }
 
       if (singleFileView && fmIndex == FileManagerIndex.main) {
@@ -90,7 +93,7 @@ const Explorer = () => {
           return ExplorerPage.GridView;
       }
     }
-  }, [loading, showError, explorerConfigLoading, singleFileView, fmIndex, files?.length, layout]);
+  }, [loading, showError, explorerConfigLoading, singleFileView, fmIndex, files?.length, layout, nextToken]);
 
   const enableAreaSelection = index == ExplorerPage.GridView;
 
@@ -143,6 +146,7 @@ const Explorer = () => {
             {index == ExplorerPage.GridView && <GridView />}
             {index == ExplorerPage.SingleFileView && <SingleFileView />}
             {index == ExplorerPage.Empty && <EmptyFileList />}
+            {index == ExplorerPage.More && nextToken && <DiscoveryContinuation index={fmIndex} token={nextToken} />}
             {index == ExplorerPage.ListView && <ListView />}
             {index == ExplorerPage.GalleryView && <GalleryView />}
             {recursion_limit_reached && (index == ExplorerPage.GridView || index == ExplorerPage.GalleryView) && (

@@ -1,11 +1,13 @@
 import { Box, Stack, useMediaQuery, useTheme } from "@mui/material";
-import { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
+import useFileEvents from "../../hooks/useFileEvents";
 import useNavigation from "../../hooks/useNavigation.tsx";
 import { clearSelected } from "../../redux/fileManagerSlice.ts";
 import { resetDialogs } from "../../redux/globalStateSlice.ts";
-import { useAppDispatch } from "../../redux/hooks.ts";
-import { resetFm, selectAll, shortCutDelete } from "../../redux/thunks/filemanager.ts";
+import { useAppDispatch, useAppSelector } from "../../redux/hooks.ts";
+import { navigateReconcile, resetFm, selectAll, shortCutDelete } from "../../redux/thunks/filemanager.ts";
+import { Filesystem } from "../../util/uri.ts";
 import ImageViewer from "../Viewers/ImageViewer/ImageViewer.tsx";
 import Explorer from "./Explorer/Explorer.tsx";
 import { FmIndexContext } from "./FmIndexContext.tsx";
@@ -33,6 +35,17 @@ export const FileManager = ({ index = 0, initialPath, skipRender }: FileManagerP
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
 
   useNavigation(index, initialPath);
+  useFileEvents(index, index === FileManagerIndex.main && !skipRender);
+  const discoveryMode = useAppSelector((state) => !!state.siteConfig.explorer.config.shared_with_me_acl);
+  const currentFs = useAppSelector((state) => state.fileManager[index].current_fs);
+  const previousMode = useRef(discoveryMode);
+  useEffect(() => {
+    if (previousMode.current !== discoveryMode && currentFs === Filesystem.shared_with_me) {
+      dispatch(clearSelected({ index, value: undefined }));
+      dispatch(navigateReconcile(index));
+    }
+    previousMode.current = discoveryMode;
+  }, [discoveryMode, currentFs, index, dispatch]);
 
   useEffect(() => {
     if (index == FileManagerIndex.main) {

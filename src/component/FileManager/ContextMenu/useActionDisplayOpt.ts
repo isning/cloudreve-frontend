@@ -218,7 +218,8 @@ export const getActionOpt = (
   });
 
   const firstFileSuffix = fileExtension(targets[0]?.name ?? "");
-  display.showPin = !display.hasTrashFile && targets.length == 1 && display.hasFolder;
+  display.showPin =
+    !display.hasTrashFile && targets.length == 1 && display.hasFolder && !targets[0].id.startsWith("share:");
   display.showDelete =
     display.hasDeletable &&
     display.orCapability &&
@@ -296,7 +297,10 @@ export const getActionOpt = (
   }
   display.showOrganize = display.showPin || display.showMove || display.showChangeFolderColor || display.showChangeIcon;
   display.showGoToSharedLink =
-    targets.length == 1 && display.hasFile && targets[0].metadata && !!targets[0].metadata[Metadata.share_redirect];
+    targets.length == 1 &&
+    (display.hasFile || targets[0].id.startsWith("share:")) &&
+    targets[0].metadata &&
+    !!targets[0].metadata[Metadata.share_redirect];
   display.showInfo = targets.length == 1 && display.orCapability && canShowInfo(display.orCapability);
   display.showRelocate =
     targets.length > 0 &&

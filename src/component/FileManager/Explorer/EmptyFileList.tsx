@@ -47,6 +47,8 @@ export const SearchLimitReached = () => {
 
 export const SharedWithMeEmpty = () => {
   const { t } = useTranslation("application");
+  const aclMode = useAppSelector((state) => state.siteConfig.explorer.config.shared_with_me_acl);
+  if (aclMode) return <Typography color="text.secondary">{t("fileManager.noAccessibleShares")}</Typography>;
 
   return (
     <Stack spacing={1}>

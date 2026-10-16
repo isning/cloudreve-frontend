@@ -13,6 +13,7 @@ import SessionManager from "../../../session";
 export interface SidebarContentProps {
   target: FileResponse | undefined | null;
   inPhotoViewer?: boolean;
+  validating?: boolean;
   setTarget: (target: FileResponse | undefined | null) => void;
 }
 
@@ -38,11 +39,11 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
-const SidebarContent = ({ target, inPhotoViewer, setTarget }: SidebarContentProps) => {
+const SidebarContent = ({ target, inPhotoViewer, setTarget, validating = false }: SidebarContentProps) => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const tab = useAppSelector((state) => state.globalState.sidebarTab) === "activity" ? 1 : 0;
-  const targetDisplayOptions = useActionDisplayOpt(target ? [target] : []);
+  const targetDisplayOptions = useActionDisplayOpt(target && !validating ? [target] : []);
   const canViewActivities =
     !!SessionManager.currentLoginOrNull() &&
     targetDisplayOptions.showInfo &&
@@ -87,6 +88,7 @@ const SidebarContent = ({ target, inPhotoViewer, setTarget }: SidebarContentProp
                 target={target}
                 setTarget={setTarget}
                 targetDisplayOptions={targetDisplayOptions}
+                validating={validating}
               />
             </TabPanel>
             {canViewActivities && (

@@ -94,7 +94,7 @@ export function setTargetPath(index: number, path: string): AppThunk {
   };
 }
 
-let generation = 0;
+const generations: Record<number, number> = {};
 export interface NavigateReconcileOptions {
   next_page?: boolean;
   sync_view?: boolean;
@@ -104,6 +104,11 @@ const pageSize = (fm: SingleManager) => {
   let pageSize = Math.max(fm.pageSize, MinPageSize);
   return Math.min(fm.pageSize, fm.list?.props.max_page_size ?? pageSize);
 };
+
+const listSort = (aclCatalog: boolean, order?: string, direction?: string) => ({
+  order_by: aclCatalog && order !== "name" && order !== "created_at" ? "created_at" : order,
+  order_direction: aclCatalog && direction !== "asc" && direction !== "desc" ? "asc" : direction,
+});
 
 export function beforePathChange(index: number): AppThunk {
   return async (dispatch, getState) => {
@@ -183,7 +188,19 @@ export function navigateReconcile(index: number, opt?: NavigateReconcileOptions)
       return;
     }
 
-    const currentGeneration = ++generation;
+    const currentGeneration = (generations[index] ?? 0) + 1;
+    generations[index] = currentGeneration;
+    const fsUri = new CrUri(path);
+    const catalog = fsUri.fs() === Filesystem.shared_with_me;
+    const requestOwner = SessionManager.currentLoginOrNull()?.user.id;
+    const discoveryMode = !!getState().siteConfig.explorer.config.shared_with_me_acl;
+    const cacheGeneration = fileManager[index].cacheGeneration;
+    const sameNavigation = () =>
+      currentGeneration === generations[index] &&
+      SessionManager.currentLoginOrNull()?.user.id === requestOwner &&
+      (!catalog || !!getState().siteConfig.explorer.config.shared_with_me_acl === discoveryMode) &&
+      getState().fileManager[index].path === path;
+    const isCurrent = () => sameNavigation() && getState().fileManager[index].cacheGeneration === cacheGeneration;
     if (!opt?.next_page) {
       dispatch(setFmLoading({ index, value: true }));
     }
@@ -198,6 +215,16 @@ export function navigateReconcile(index: number, opt?: NavigateReconcileOptions)
     const currentLogin = SessionManager.currentLoginOrNull();
     const currentView = localCustomView[pure_path ?? ""];
     let useCustomView = currentLogin?.user.disable_view_sync || currentView;
+    // ACL responses update the displayed sort. Keep using the saved local
+    // preference so returning to manual mode restores its original order.
+    const useSavedSort = catalog && currentLogin?.user.disable_view_sync;
+    const sort = listSort(
+      catalog && discoveryMode,
+      currentView?.order ??
+        (useSavedSort ? SessionManager.getWithFallback(UserSettings.SortBy) : fileManager[index].sortBy),
+      currentView?.order_direction ??
+        (useSavedSort ? SessionManager.getWithFallback(UserSettings.SortDirection) : fileManager[index].sortDirection),
+    );
 
     let listRes: ListResponse | null = null;
     try {
@@ -209,8 +236,7 @@ export function navigateReconcile(index: number, opt?: NavigateReconcileOptions)
           ...(useCustomView
             ? {
                 page_size: currentView?.page_size ?? pageSize(fileManager[index]),
-                order_by: currentView?.order ?? fileManager[index].sortBy,
-                order_direction: currentView?.order_direction ?? fileManager[index].sortDirection,
+                ...sort,
               }
             : {}),
         }),
@@ -218,13 +244,17 @@ export function navigateReconcile(index: number, opt?: NavigateReconcileOptions)
 
       // DB sorting has limit on string comparison, so we need to
       // sort by localCompare, if all files in current page is loaded, and sortBy is name.
-      const sortBy = listRes.view ? listRes.view.order : currentView?.order;
-      const orderDirection = listRes.view ? listRes.view.order_direction : currentView?.order_direction;
+      const sortBy = listRes.view ? listRes.view.order : useCustomView ? sort.order_by : undefined;
+      const orderDirection = listRes.view
+        ? listRes.view.order_direction
+        : useCustomView
+          ? sort.order_direction
+          : undefined;
       if (sortBy == "name" && !getPaginationState(list?.pagination).moreItems) {
         listRes.files = sortByLocalCompare(listRes.files, listRes.mixed_type, orderDirection == "desc");
       }
     } catch (e) {
-      if (currentGeneration == generation) {
+      if (isCurrent()) {
         dispatch(
           setFmError({
             index,
@@ -234,25 +264,19 @@ export function navigateReconcile(index: number, opt?: NavigateReconcileOptions)
         return;
       }
     } finally {
-      if (currentGeneration == generation) {
+      // An authorization error invalidates caches, but this request still owns
+      // its loading indicator until another navigation replaces it.
+      if (sameNavigation()) {
         dispatch(setFmLoading({ index, value: false }));
       }
     }
 
     // Check if current request is stale
-    if (currentGeneration !== generation) {
+    if (!isCurrent()) {
       return;
     }
 
     if (listRes) {
-      const fsUri = new CrUri(path);
-      dispatch(
-        appendTreeCache({
-          index,
-          value: [listRes.files, fsUri.is_search() ? undefined : path],
-        }),
-      );
-
       if (listRes.view) {
         // Apply view setting from cloud
         dispatch(setPageSize({ index, value: listRes.view.page_size }));
@@ -306,8 +330,19 @@ export function navigateReconcile(index: number, opt?: NavigateReconcileOptions)
         if (timeDiff > 0 && timeDiff < 140) {
           await sleep(140 - timeDiff);
         }
+        if (!isCurrent()) return;
         dispatch(applyListResponse({ index, value: listRes }));
       }
+      dispatch(
+        appendTreeCache({
+          index,
+          value: [
+            listRes.files,
+            fsUri.is_search() ? undefined : path,
+            !opt?.next_page && (fsUri.fs() === Filesystem.share || catalog),
+          ],
+        }),
+      );
     }
   };
 }
@@ -316,17 +351,21 @@ export function loadMorePages(index: number): AppThunk {
   return async (dispatch, getState) => {
     const fm = getState().fileManager[index];
     if (fm.list?.pagination.next_token) {
-      dispatch(navigateReconcile(index, { next_page: true }));
+      return dispatch(navigateReconcile(index, { next_page: true }));
     } else {
-      dispatch(changePage(index, (fm.list?.pagination.page ?? 0) + 1));
+      return dispatch(changePage(index, (fm.list?.pagination.page ?? 0) + 1));
     }
   };
 }
 
 export function loadChild(index: number, path: string, beforeLoad?: () => void): AppThunk {
   return async (dispatch, getState) => {
+    const actor = SessionManager.currentLoginOrNull()?.user.id;
+    const catalog = new CrUri(path).fs() === Filesystem.shared_with_me;
+    const mode = !!getState().siteConfig.explorer.config.shared_with_me_acl;
     let listRes: ListResponse | null = null;
     const { fileManager } = getState();
+    const cacheGeneration = fileManager[index].cacheGeneration;
     const current = fileManager[index].tree[path];
     if (current && current.children) {
       return;
@@ -339,10 +378,15 @@ export function loadChild(index: number, path: string, beforeLoad?: () => void):
         getFileList({
           page_size: pageSize(fileManager[index]),
           uri: path,
-          order_by: fileManager[index].sortBy,
-          order_direction: fileManager[index].sortDirection,
+          ...listSort(catalog && mode, fileManager[index].sortBy, fileManager[index].sortDirection),
         }),
       );
+      if (
+        SessionManager.currentLoginOrNull()?.user.id !== actor ||
+        getState().fileManager[index].cacheGeneration !== cacheGeneration ||
+        (catalog && !!getState().siteConfig.explorer.config.shared_with_me_acl !== mode)
+      )
+        return;
       dispatch(appendTreeCache({ index, value: [listRes.files, path] }));
     } catch (e) {
       console.log(e);
@@ -361,7 +405,7 @@ export function changePageSize(index: number, pageSize: number): AppThunk {
 export function changePage(index: number, page: number): AppThunk {
   return async (dispatch, _getState) => {
     dispatch(setPage({ index, value: page }));
-    dispatch(navigateReconcile(index));
+    return dispatch(navigateReconcile(index));
   };
 }
 

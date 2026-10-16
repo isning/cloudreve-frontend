@@ -151,6 +151,7 @@ export interface GlobalStateSlice {
   versionControlDialogOpen?: boolean;
   versionControlDialogFile?: FileResponse;
   relocateDialog?: { files: FileResponse[]; index: number; owner: string };
+  filePermissionDialog?: { files: FileResponse[]; index: number; owner: string };
   bindPolicyDialog?: { file: FileResponse; index: number; owner: string };
   versionControlHighlight?: string;
 
@@ -401,6 +402,7 @@ export const globalStateSlice = createSlice({
       state.policyOptionCache = action.payload;
     },
     resetDialogs: (state) => {
+      state.filePermissionDialog = undefined;
       state.bindPolicyDialog = undefined;
       state.relocateDialog = undefined;
       state.aggregatedErrorDialogOpen = state.aggregatedErrorDialogOpen ? false : undefined;
@@ -782,6 +784,12 @@ export const globalStateSlice = createSlice({
     ) => {
       state.relocateDialog = action.payload;
     },
+    setFilePermissionDialog: (
+      state,
+      action: PayloadAction<{ files: FileResponse[]; index: number; owner: string } | undefined>,
+    ) => {
+      state.filePermissionDialog = action.payload;
+    },
     setBindPolicyDialog: (
       state,
       action: PayloadAction<{ file: FileResponse; index: number; owner: string } | undefined>,
@@ -924,6 +932,7 @@ export const {
   closeManageShareDialog,
   setVersionControlDialog,
   setBindPolicyDialog,
+  setFilePermissionDialog,
   setRelocateDialog,
   closeVersionControlDialog,
   closeSidebar,

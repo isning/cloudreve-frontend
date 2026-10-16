@@ -8,9 +8,11 @@ import { downloadSingleFile } from "../../../redux/thunks/download.ts";
 import { sizeToString } from "../../../util";
 import { NoWrapTableCell, StyledTableContainerPaper } from "../../Common/StyledComponents.tsx";
 import TimeBadge from "../../Common/TimeBadge.tsx";
+import { DisplayOption } from "../ContextMenu/useActionDisplayOpt.ts";
 
 export interface DataProps {
   target: FileResponse;
+  targetDisplayOptions?: DisplayOption;
 }
 
 export const EntityTypeText: Record<EntityType, string> = {
@@ -19,7 +21,7 @@ export const EntityTypeText: Record<EntityType, string> = {
   [EntityType.version]: "application:fileManager.version",
 };
 
-const Data = ({ target }: DataProps) => {
+const Data = ({ target, targetDisplayOptions }: DataProps) => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
 
@@ -73,13 +75,15 @@ const Data = ({ target }: DataProps) => {
                 <TableCell>-</TableCell>
                 <TableCell>-</TableCell>
                 <TableCell>
-                  <Link
-                    href={"#"}
-                    onClick={() => dispatch(setVersionControlDialog({ open: true, file: target }))}
-                    underline={"hover"}
-                  >
-                    {t("fileManager.manageVersions")}
-                  </Link>
+                  {targetDisplayOptions?.showVersionControl && (
+                    <Link
+                      href={"#"}
+                      onClick={() => dispatch(setVersionControlDialog({ open: true, file: target }))}
+                      underline={"hover"}
+                    >
+                      {t("fileManager.manageVersions")}
+                    </Link>
+                  )}
                 </TableCell>
               </TableRow>
             )}
@@ -96,9 +100,11 @@ const Data = ({ target }: DataProps) => {
                   </TableCell>
                   <NoWrapTableCell>{e.storage_policy?.name}</NoWrapTableCell>
                   <NoWrapTableCell>
-                    <Link href={"#"} underline={"hover"} onClick={() => downloadEntity(e.id)}>
-                      {t("fileManager.download")}
-                    </Link>
+                    {targetDisplayOptions?.showDownload && (
+                      <Link href={"#"} underline={"hover"} onClick={() => downloadEntity(e.id)}>
+                        {t("fileManager.download")}
+                      </Link>
+                    )}
                   </NoWrapTableCell>
                 </TableRow>
               ))}

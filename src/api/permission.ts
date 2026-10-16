@@ -7,7 +7,11 @@ export interface PermissionGroup {
 }
 export const getPermissionGroups = (): ThunkResponse<PermissionGroup[]> =>
   send("/group/list", { method: "GET" }, defaultOpts);
-export const setFilePermissions = (uris: string[], setting: PermissionSetting): ThunkResponse<void> =>
-  send("/file/permission", { method: "POST", data: { uris, setting } }, defaultOpts);
-export const clearFilePermissions = (uris: string[]): ThunkResponse<void> =>
-  send("/file/permission", { method: "DELETE", data: { uris } }, defaultOpts);
+export const setFilePermissions = (
+  uris: string[],
+  setting: PermissionSetting,
+  expectedIDs?: string[],
+): ThunkResponse<void> =>
+  send("/file/permission", { method: "POST", data: { uris, setting, expected_ids: expectedIDs } }, defaultOpts);
+export const clearFilePermissions = (uris: string[], expectedIDs?: string[]): ThunkResponse<void> =>
+  send("/file/permission", { method: "DELETE", data: { uris, expected_ids: expectedIDs } }, defaultOpts);

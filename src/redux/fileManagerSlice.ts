@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { FileResponse, FileThumbResponse, FileType, ListResponse } from "../api/explorer.ts";
-import { AppError, Response } from "../api/request.ts";
+import { AppError, Code, Response } from "../api/request.ts";
 import { Capacity } from "../api/user.ts";
 import { ListViewColumnSetting } from "../component/FileManager/Explorer/ListView/Column.tsx";
 import SessionManager, { UserSettings } from "../session";
@@ -26,9 +26,11 @@ export interface SingleManager {
   error?: Response<any>;
   loading: boolean;
   list?: ListResponse;
+  listPath?: string;
   tree: {
     [key: string]: FmTreeItem;
   };
+  cacheGeneration: number;
   current_fs?: string;
   capacity?: Capacity;
   selected: {
@@ -100,6 +102,7 @@ const defaultManagerValue = {
   loading: false,
   showError: false,
   tree: {},
+  cacheGeneration: 0,
   root_meta: {},
   selected: {},
   pageSize: SessionManager.getWithFallback(UserSettings.PageSize),
@@ -114,6 +117,32 @@ const defaultManagerValue = {
     : SessionManager.getWithFallback(UserSettings.GalleryWidth),
 };
 const initialState: [SingleManager, SingleManager] = [defaultManagerValue, defaultManagerValue];
+
+function reconcileActionTargets(fm: SingleManager) {
+  const current = new Map(fm.list?.files.map((file) => [file.path, file]));
+  if (fm.list?.parent) current.set(fm.list.parent.path, fm.list.parent);
+  const reconcile = (targets: SingleManager["selected"]) => {
+    let removed = false;
+    Object.entries(targets).forEach(([path, file]) => {
+      const fresh = current.get(path);
+      if (fresh && fresh.id === file.id) {
+        targets[path] = fresh;
+      } else {
+        delete targets[path];
+        removed = true;
+      }
+    });
+    return removed;
+  };
+
+  // Actions use the current listing's grants, including permission downgrades.
+  // A missing or recreated target must not silently change an open batch menu.
+  const removedSelection = reconcile(fm.selected);
+  if (fm.contextMenuTargets ? reconcile(fm.contextMenuTargets) : removedSelection) {
+    fm.contextMenuOpen = false;
+    fm.contextMenuTargets = undefined;
+  }
+}
 
 export const fileManagerSlice = createSlice({
   name: "fileManagerSlice",
@@ -133,6 +162,7 @@ export const fileManagerSlice = createSlice({
       });
     },
     resetFileManager: (state, action: PayloadAction<number>) => {
+      state[action.payload].cacheGeneration++;
       state[action.payload].path = undefined;
       state[action.payload].previous_path = undefined;
       state[action.payload].pure_path = undefined;
@@ -144,6 +174,7 @@ export const fileManagerSlice = createSlice({
       state[action.payload].showError = false;
       state[action.payload].error = undefined;
       state[action.payload].list = undefined;
+      state[action.payload].listPath = undefined;
       state[action.payload].selected = {};
       state[action.payload].contextMenuOpen = false;
       state[action.payload].deleteFileModalOpen = state[action.payload].deleteFileModalOpen ? false : undefined;
@@ -154,6 +185,28 @@ export const fileManagerSlice = createSlice({
       state[action.payload.index].showError = !!e;
       if (e instanceof AppError) {
         state[action.payload.index].error = e.ErrorResponse();
+        if (
+          [
+            Code.PermissionDenied,
+            Code.GroupNotAllowed,
+            Code.CredentialInvalid,
+            Code.CodeLoginRequired,
+            Code.NodeFound,
+            Code.ParentNotExist,
+            Code.IncorrectPassword,
+            Code.AnonymouseAccessDenied,
+          ].includes(e.code)
+        ) {
+          // A revoked entry cannot keep authorizing cached actions or tree rows.
+          const fm = state[action.payload.index];
+          fm.cacheGeneration++;
+          fm.list = undefined;
+          fm.listPath = undefined;
+          fm.tree = {};
+          fm.selected = {};
+          fm.contextMenuOpen = false;
+          fm.contextMenuTargets = undefined;
+        }
       } else if (e instanceof Error) {
         state[action.payload.index].error = {
           msg: e.message,
@@ -166,24 +219,46 @@ export const fileManagerSlice = createSlice({
       state[action.payload.index].loading = action.payload.value;
     },
     applyListResponse: (state, action: PayloadAction<FileManagerArgsBase<ListResponse>>) => {
-      state[action.payload.index].list = action.payload.value;
+      const fm = state[action.payload.index];
+      fm.list = action.payload.value;
+      fm.listPath = fm.path;
+      reconcileActionTargets(fm);
     },
     appendListResponse: (state, action: PayloadAction<FileManagerArgsBase<ListResponse>>) => {
-      const newList = [...(state[action.payload.index].list?.files || []), ...action.payload.value.files];
+      let newList = [...(state[action.payload.index].list?.files || []), ...action.payload.value.files];
+      if (newList.some((file) => file.id.startsWith("share:"))) {
+        newList = Array.from(new Map(newList.map((file) => [file.id, file])).values());
+      }
       state[action.payload.index].list = {
         ...action.payload.value,
         files: newList,
       };
+      state[action.payload.index].listPath = state[action.payload.index].path;
+      reconcileActionTargets(state[action.payload.index]);
     },
     setFileList: (state, action: PayloadAction<FileManagerArgsBase<FileResponse[]>>) => {
       const fm = state[action.payload.index];
       if (fm.list) {
         fm.list.files = action.payload.value;
+        reconcileActionTargets(fm);
       }
     },
-    appendTreeCache: (state, action: PayloadAction<FileManagerArgsBase<[FileResponse[], string | undefined]>>) => {
+    appendTreeCache: (
+      state,
+      action: PayloadAction<FileManagerArgsBase<[FileResponse[], string | undefined, boolean?]>>,
+    ) => {
       const path = action.payload.value[1];
       const fm = state[action.payload.index];
+      if (path && action.payload.value[2]) {
+        // A fresh share listing must forget previously visible descendants.
+        // Pagination still appends; a full refresh also invalidates older tree requests.
+        fm.cacheGeneration++;
+        const prefix = path.replace(/\/$/, "") + "/";
+        Object.keys(fm.tree).forEach((entry) => {
+          if (entry.startsWith(prefix)) delete fm.tree[entry];
+        });
+        if (fm.tree[path]) fm.tree[path].children = [];
+      }
       action.payload.value[0].forEach((file) => {
         if (!fm.tree[file.path]) {
           fm.tree[file.path] = {};
@@ -243,7 +318,9 @@ export const fileManagerSlice = createSlice({
       >,
     ) => {
       if (state[action.payload.index].path != action.payload.value.path) {
+        state[action.payload.index].cacheGeneration++;
         state[action.payload.index].previous_path = state[action.payload.index].path;
+        state[action.payload.index].listPath = undefined;
       }
       state[action.payload.index].path = action.payload.value.path;
       state[action.payload.index].path_elements = action.payload.value.path_elements;
@@ -291,8 +368,12 @@ export const fileManagerSlice = createSlice({
     },
     clearSessionCache: (state, action: PayloadAction<FileManagerArgsBase<any>>) => {
       const index = action.payload.index;
+      state[index].cacheGeneration++;
       state[index].tree = {};
       state[index].capacity = undefined;
+      state[index].list = undefined;
+      state[index].listPath = undefined;
+      state[index].selected = {};
     },
     setCapacity: (state, action: PayloadAction<FileManagerArgsBase<Capacity>>) => {
       const index = action.payload.index;

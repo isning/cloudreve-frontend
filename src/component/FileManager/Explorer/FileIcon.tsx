@@ -1,8 +1,9 @@
 import { Avatar, Badge, BadgeProps, Box, Skeleton, styled, SvgIconProps, Tooltip } from "@mui/material";
-import { forwardRef, memo, useMemo } from "react";
+import React, { forwardRef, memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { FileResponse, FileType, Metadata } from "../../../api/explorer.ts";
 import UserAvatar from "../../Common/User/UserAvatar.tsx";
+import LockClosedOutlined from "../../Icons/LockClosedOutlined.tsx";
 import ShareAndroid from "../../Icons/ShareAndroid.tsx";
 import EmojiIcon from "./EmojiIcon.tsx";
 import FileTypeIcon from "./FileTypeIcon.tsx";
@@ -75,6 +76,13 @@ const FileIcon = memo(
     }, [file, iconColor, iconProps, notLoaded]);
     const badgeContent = useMemo(() => {
       const avatarSize = variantAvatarSize[variant];
+      if (file?.metadata?.["sys:shared_locked"] === "1") {
+        return (
+          <Tooltip title={t("application:sharing.passwordProtected")}>
+            <LockClosedOutlined sx={{ fontSize: avatarSize }} />
+          </Tooltip>
+        );
+      }
       if (file?.metadata?.[Metadata.share_redirect]) {
         return (
           <UserAvatar

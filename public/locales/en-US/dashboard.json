@@ -820,7 +820,9 @@
     "ftsTikaExts": "Supported extensions",
     "ftsTikaExtsDes": "Comma-separated list of file extensions. Tika will process files of these types.",
     "ftsTikaMaxFileSize": "Maximum file size",
-    "ftsTikaMaxFileSizeDes": "Maximum file size to send to Tika for content extraction."
+    "ftsTikaMaxFileSizeDes": "Maximum file size to send to Tika for content extraction.",
+    "sharedWithMeACL": "Discover shares by permissions",
+    "sharedWithMeACLDescription": "Includes all accessible share links, including links open to everyone. Saved shortcuts are preserved when switching modes."
   },
   "giftCodes": {
     "giftCodesSettings": "Gift Codes",

@@ -462,7 +462,11 @@
     "relocateTaskAccepted": "Migration task accepted. Follow its progress in Background Tasks.",
     "unavailableStorageDestination": "Policy outside current choices ({{id}})",
     "chooseStorageDestination": "Choose a storage destination",
-    "startStorageMigration": "Create migration task"
+    "startStorageMigration": "Create migration task",
+    "noAccessibleShares": "No accessible shares",
+    "findingShares": "Looking for shared files…",
+    "moreSharesAvailable": "More shares may be available.",
+    "continueFindingShares": "Continue searching"
   },
   "modals": {
     "includePasswordInShareLink": "Include password in share link",
@@ -1116,6 +1120,18 @@
     "currentlyInherited": "This file currently inherits its permissions. Saving creates explicit rules; restoring inheritance removes them.",
     "saveFailed": "Permissions were not saved. Check the settings and try again.",
     "collectionHint": "Drop files here or click Upload. Submitted files are visible only to the recipient.",
-    "ownerStorage": "Uses the share owner’s storage policy."
+    "ownerStorage": "Uses the share owner’s storage policy.",
+    "setExplicit": "Set explicit permissions",
+    "loadingPermissions": "Loading permissions…",
+    "retry": "Retry",
+    "source_entry": "Permissions depend on the access entry.",
+    "source_explicit": "This item has explicit permission rules.",
+    "source_ancestor": "Permission rules are inherited from an ancestor.",
+    "source_link": "The share link determines permissions at this root.",
+    "contextDependent": "Your owner or administrator access remains unrestricted. Recipients’ access depends on their share link and nearest rule.",
+    "batchReplace": "Permissions for {{count}} selected items",
+    "batchReplaceWarning": "This replaces explicit rules on every selected item. Existing rules may differ. Descendants are not changed.",
+    "saveDraftKept": "Could not confirm a successful save. Batch saves are atomic; your draft is kept for retry.",
+    "passwordProtected": "Password-protected share"
   }
 }

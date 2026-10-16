@@ -34,7 +34,7 @@ export function refreshUserSession(session: LoginResponse, redirect: string | nu
 }
 
 export function setTargetSession(session: LoginResponse): AppThunk {
-  return async (dispatch, _getState) => {
+  return async (dispatch, getState) => {
     SessionManager.upsert(session);
     dispatch(setPreferredTheme(session.user.preferred_theme ?? ""));
     if (session.user.language) {
@@ -42,9 +42,8 @@ export function setTargetSession(session: LoginResponse): AppThunk {
     }
     dispatch(setDrawerWidth(SessionManager.getWithFallback(UserSettings.DrawerWidth)));
     dispatch(setDarkMode(SessionManager.get(UserSettings.PreferredDarkMode)));
-    // TODO: clear fm cache
     dispatch(setPolicyOptionCache());
-    dispatch(clearSessionCache({ index: 0, value: undefined }));
+    getState().fileManager.forEach((_, index) => dispatch(clearSessionCache({ index, value: undefined })));
     refreshTimeZone();
   };
 }

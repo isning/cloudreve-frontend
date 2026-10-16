@@ -462,7 +462,11 @@
     "relocateTaskAccepted": "迁移任务已受理，可在后台任务中查看进度。",
     "unavailableStorageDestination": "当前不可选的策略（{{id}}）",
     "chooseStorageDestination": "选择迁移目的地",
-    "startStorageMigration": "创建迁移任务"
+    "startStorageMigration": "创建迁移任务",
+    "noAccessibleShares": "暂无可访问的分享",
+    "findingShares": "正在查找可访问的分享…",
+    "moreSharesAvailable": "后面可能还有可访问的分享。",
+    "continueFindingShares": "继续查找"
   },
   "modals": {
     "includePasswordInShareLink": "在链接中包含密码",
@@ -1116,6 +1120,18 @@
     "currentlyInherited": "此文件当前继承权限。保存后会创建独立规则；恢复继承会移除独立规则。",
     "saveFailed": "权限未保存，请检查后重试。",
     "collectionHint": "将文件拖到这里或点击上传。已提交的文件仅收件人可见。",
-    "ownerStorage": "使用分享主人的存储策略。"
+    "ownerStorage": "使用分享主人的存储策略。",
+    "setExplicit": "设置显式权限",
+    "loadingPermissions": "正在加载权限…",
+    "retry": "重试",
+    "source_entry": "权限取决于访问入口。",
+    "source_explicit": "此对象已设置显式权限。",
+    "source_ancestor": "权限规则继承自祖先目录。",
+    "source_link": "此分享根使用链接权限。",
+    "contextDependent": "你作为所有者或管理员完整访问；接收者的权限取决于所用分享链接和最近规则。",
+    "batchReplace": "所选 {{count}} 项的权限",
+    "batchReplaceWarning": "将替换每个所选对象自身的显式规则；原有规则可能不同。不会递归改写后代。",
+    "saveDraftKept": "未能确认保存成功。批量保存具有事务原子性；已保留草稿，可重试。",
+    "passwordProtected": "需要密码的分享"
   }
 }

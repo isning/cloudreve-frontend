@@ -1,4 +1,4 @@
-import { Box, Collapse, FormControl, Link, ListItemText, Typography } from "@mui/material";
+import { Box, Collapse, FormControl, Switch, FormControlLabel, Link, ListItemText, Typography } from "@mui/material";
 import * as React from "react";
 import { useCallback, useContext } from "react";
 import { Trans, useTranslation } from "react-i18next";
@@ -25,6 +25,20 @@ const FileSystemSection = () => {
         {t("nav.fileSystem")}
       </Typography>
       <SettingSectionContent>
+        <SettingForm title={t("settings.sharedWithMeACL")} lgWidth={5}>
+          <FormControl>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={values.shared_with_me_acl === "1"}
+                  onChange={(_, checked) => setSettings({ shared_with_me_acl: checked ? "1" : "0" })}
+                />
+              }
+              label={t("settings.sharedWithMeACL")}
+            />
+            <NoMarginHelperText>{t("settings.sharedWithMeACLDescription")}</NoMarginHelperText>
+          </FormControl>
+        </SettingForm>
         <SettingForm title={t("settings.textEditMaxSize")} lgWidth={5}>
           <FormControl>
             <SizeInput
