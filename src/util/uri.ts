@@ -14,6 +14,7 @@ export const Filesystem = {
 };
 
 export const UriQuery = {
+  default_share_identity: "default_share_identity",
   name: "name",
   name_op_or: "name_op_or",
   metadata_prefix: "meta_",
@@ -79,7 +80,7 @@ export default class CrUri {
   }
 
   public is_search(): boolean {
-    return !!this.url.searchParams.keys().next().value;
+    return Array.from(this.url.searchParams.keys()).some((key) => key !== UriQuery.default_share_identity);
   }
 
   public query(key: string): string[] {
@@ -92,9 +93,7 @@ export default class CrUri {
   }
 
   public setSearchParam(param: SearchParam): this {
-    this.url.searchParams.forEach((_, k) => {
-      this.url.searchParams.delete(k);
-    });
+    this.url.search = this.pure_uri().url.search;
     if (param.name) {
       if (this.fs() == Filesystem.trash) {
         this.addQuery(UriQuery.metadata_prefix + Metadata.restore_uri, encodeURI(param.name.join(" ")));
@@ -278,7 +277,7 @@ export default class CrUri {
     const newUri = new URL(this.url.toString());
     newUri.pathname = "";
     if (excludeSearch) {
-      newUri.search = "";
+      newUri.search = this.pure_uri().url.search;
     }
 
     // remove ending slash
@@ -289,9 +288,9 @@ export default class CrUri {
   // pure_uri returns the uri without searching query string, with exceptions.
   public pure_uri(...exceptions: string[]): CrUri {
     const newUri = new CrUri(this.toString());
-    let keysForDel: string[] = [];
+    const keysForDel: string[] = [];
     newUri.url.searchParams.forEach((_v, k) => {
-      if (exceptions && exceptions.includes(k)) {
+      if (k === UriQuery.default_share_identity || exceptions.includes(k)) {
         return;
       }
       keysForDel.push(k);

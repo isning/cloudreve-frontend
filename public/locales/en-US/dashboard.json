@@ -822,7 +822,9 @@
     "ftsTikaMaxFileSize": "Maximum file size",
     "ftsTikaMaxFileSizeDes": "Maximum file size to send to Tika for content extraction.",
     "sharedWithMeACL": "Discover shares by permissions",
-    "sharedWithMeACLDescription": "Includes all accessible share links, including links open to everyone. Saved shortcuts are preserved when switching modes."
+    "sharedWithMeACLDescription": "Includes all accessible share links, including links open to everyone. Saved shortcuts are preserved when switching modes.",
+    "unavailableShare": "Unavailable or loading",
+    "defaultSharesLoadError": "Could not load shares. Search again to retry. Selected IDs are preserved."
   },
   "giftCodes": {
     "giftCodesSettings": "Gift Codes",

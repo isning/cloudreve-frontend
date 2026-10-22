@@ -2213,3 +2213,13 @@ export function sendRebuildFTSIndex(req: RebuildFTSIndexWorkflowService): ThunkR
     );
   };
 }
+
+export interface DefaultShareResult {
+  added: number;
+  existing: number;
+  skipped: number;
+}
+
+export function sendAddDefaultShares(): ThunkResponse<DefaultShareResult> {
+  return async (dispatch) => dispatch(send("/user/setting/default-shares", { method: "POST" }, { ...defaultOpts }));
+}

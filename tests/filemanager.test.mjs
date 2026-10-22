@@ -27,6 +27,8 @@ function fixture(uri = "cloudreve://my", mode) {
   let actor = "viewer";
   let disableViewSync = false;
   const requests = [];
+  const logs = [];
+  const navigations = [];
   const viewWrites = [];
   const UserSettings = { SortBy: "sort_by", SortDirection: "sort_direction" };
   const saved = { sort_by: "created_at", sort_direction: "asc" };
@@ -56,11 +58,13 @@ function fixture(uri = "cloudreve://my", mode) {
         module,
         exports: module.exports,
         URL,
+        URLSearchParams,
         atob,
         btoa,
-        console,
+        console: { ...console, log: (...args) => logs.push(args) },
         window: { matchMedia: () => ({ matches: false }) },
         require(id) {
+          if (id === "../../router") return { router: { navigate: (uri) => navigations.push(uri) } };
           if (["dayjs", "path-browserify", "@reduxjs/toolkit", "react"].includes(id)) return resolveModule(id);
           if (id.endsWith("/session")) return { __esModule: true, default: session, UserSettings };
           if (id.endsWith("/request.ts")) return { Code, AppError };
@@ -112,6 +116,8 @@ function fixture(uri = "cloudreve://my", mode) {
     respond,
     fail,
     requests,
+    logs,
+    navigations,
     viewWrites,
     manager: () => state.fileManager[0],
     getActionOpt: load("src/component/FileManager/ContextMenu/useActionDisplayOpt.ts").getActionOpt,
@@ -529,4 +535,14 @@ test("returning to an earlier path cannot mark retained rows as a completed navi
     assert.equal(f.manager().listPath, undefined);
   }
   assert.ok(f.manager().list);
+});
+
+test("password retry preserves share identity without logging credentials", async () => {
+  const f = fixture("cloudreve://link@share/folder?default_share_identity=42%3Astamp");
+  await f.dispatch(f.thunks.retrySharePassword(0, "fixture-password"));
+  assert.equal(f.navigations.length, 1);
+  const target = new URL(new URL(f.navigations[0], "https://example.test").searchParams.get("path"));
+  assert.equal(target.password, "fixture-password");
+  assert.equal(target.searchParams.get("default_share_identity"), "42:stamp");
+  assert.deepEqual(f.logs, []);
 });

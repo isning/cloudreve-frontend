@@ -21,7 +21,8 @@ const UserSession = () => {
   const defaultSymbolics = useMemo(() => {
     let result: number[] = [];
     try {
-      result = JSON.parse(values?.default_symbolics ?? "[]");
+      const parsed = JSON.parse(values?.default_symbolics ?? "[]");
+      if (Array.isArray(parsed) && parsed.every((id) => Number.isSafeInteger(id) && id > 0)) result = parsed;
     } catch (e) {
       console.error(e);
     }
@@ -127,9 +128,12 @@ const UserSession = () => {
                 <NoMarginHelperText>{t("settings.defaultGroupDes")}</NoMarginHelperText>
               </FormControl>
             </SettingForm>
-            <SettingForm title={t("settings.defaultSymbolics")} lgWidth={5} pro>
+            <SettingForm title={t("settings.defaultSymbolics")} lgWidth={5}>
               <FormControl>
-                <SharesInput />
+                <SharesInput
+                  value={defaultSymbolics}
+                  onChange={(ids) => setSettings({ default_symbolics: JSON.stringify(ids) })}
+                />
                 <NoMarginHelperText>
                   <Trans
                     i18nKey="settings.defaultSymbolicsDes"

@@ -550,7 +550,6 @@ export function retrySharePassword(index: number, password: string): AppThunk {
     const crUri = new CrUri(fm.path);
     crUri.setPassword(password);
 
-    console.log(crUri.toString());
     dispatch(navigateToPath(index, crUri.toString()));
   };
 }

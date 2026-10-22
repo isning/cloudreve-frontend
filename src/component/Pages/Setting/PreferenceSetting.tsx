@@ -16,7 +16,7 @@ import {
   useTheme,
 } from "@mui/material";
 import i18next from "i18next";
-import { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { sendUpdateUserSetting } from "../../../api/api.ts";
 import { UserSettings as UserSettingsType } from "../../../api/user.ts";
@@ -41,6 +41,7 @@ import FolderArrowRightOutlined from "../../Icons/FolderArrowRightOutlined.tsx";
 import RectangleLandscapeSync from "../../Icons/RectangleLandscapeSync.tsx";
 import RectangleLandscapeSyncOff from "../../Icons/RectangleLandscapeSyncOff.tsx";
 import SettingForm from "./SettingForm.tsx";
+import DefaultShares from "./DefaultShares.tsx";
 
 export interface PreferenceSettingProps {
   setting: UserSettingsType;
@@ -192,6 +193,7 @@ const PreferenceSetting = ({ setting, setSetting }: PreferenceSettingProps) => {
 
   return (
     <Stack spacing={3}>
+      <DefaultShares key={SessionManager.currentLoginOrNull()?.user.id} />
       <SettingForm title={t("setting.language")} lgWidth={3}>
         <FormControl fullWidth>
           <DenseSelect value={i18next.language} onChange={(e) => dispatch(selectLanguage(e.target.value as string))}>

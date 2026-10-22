@@ -1003,7 +1003,12 @@
     "relocateFileTo": "Relocate storage policy to {{policy}} for <0></0>{{more}}",
     "extractFileTo": "Extract <0></0>{{more}} to <1></1>",
     "createArchiveTo": "Create archive file to <1></1> for <0></0>{{more}}",
-    "importFileTo": "Import files from {{policy}} to <0></0>"
+    "importFileTo": "Import files from {{policy}} to <0></0>",
+    "defaultShares": "Site default shares",
+    "defaultSharesDes": "Add the site’s current public recommendations to My files. Existing shortcuts are kept, including ones you renamed or moved.",
+    "addDefaultShares": "Add site default shares",
+    "defaultSharesResult": "Added: {{added}} · Already present: {{existing}} · Skipped: {{skipped}}",
+    "defaultSharesError": "Could not add default shares. Please try again."
   },
   "vas": {
     "points": "Points",

@@ -822,7 +822,9 @@
     "ftsTikaMaxFileSize": "最大文件大小",
     "ftsTikaMaxFileSizeDes": "发送至 Tika 进行内容提取的文件最大大小。",
     "sharedWithMeACL": "按权限自动发现分享",
-    "sharedWithMeACLDescription": "列出当前可访问的分享，包括向所有人开放的链接。切换模式会保留已保存的快捷方式。"
+    "sharedWithMeACLDescription": "列出当前可访问的分享，包括向所有人开放的链接。切换模式会保留已保存的快捷方式。",
+    "unavailableShare": "不可用或正在加载",
+    "defaultSharesLoadError": "分享加载失败，请重新搜索。已选条目会保留。"
   },
   "giftCodes": {
     "giftCodesSettings": "礼品码",
