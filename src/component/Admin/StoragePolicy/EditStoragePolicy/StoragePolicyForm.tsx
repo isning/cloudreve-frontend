@@ -1,5 +1,5 @@
 import { Alert, Box, Link, Stack, Typography } from "@mui/material";
-import { useContext } from "react";
+import React, { useContext } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { Link as RouterLink } from "react-router-dom";
 import { PolicyType } from "../../../../api/explorer";

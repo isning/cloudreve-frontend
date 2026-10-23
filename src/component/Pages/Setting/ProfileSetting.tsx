@@ -1,7 +1,7 @@
 import { LoadingButton } from "@mui/lab";
 import { Collapse, Grid2, Stack, Typography, useMediaQuery, useTheme, styled } from "@mui/material";
 import { bindPopover, bindTrigger, usePopupState } from "material-ui-popup-state/hooks";
-import { useRef, useState } from "react";
+import { Dispatch, SetStateAction, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { sendUpdateUserSetting } from "../../../api/api.ts";
 import { UserSettings, ShareLinksInProfileLevel } from "../../../api/user.ts";
@@ -16,7 +16,7 @@ import SettingForm from "./SettingForm.tsx";
 
 export interface ProfileSettingProps {
   setting: UserSettings;
-  setSetting: (setting: UserSettings) => void;
+  setSetting: Dispatch<SetStateAction<UserSettings | undefined>>;
 }
 
 const ProfileDropButton = styled(DefaultButton)(({ theme }) => ({

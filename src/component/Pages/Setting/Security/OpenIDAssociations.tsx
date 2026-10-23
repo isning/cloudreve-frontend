@@ -1,34 +1,43 @@
-import { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Alert, Button, List, ListItem, ListItemText } from "@mui/material";
 import { useTranslation } from "react-i18next";
-import { UserSettings } from "../../../../api/user.ts";
+import type { ProfileSettingProps } from "../ProfileSetting.tsx";
 import { unlinkOpenID } from "../../../../api/openid.ts";
 import { useAppDispatch, useAppSelector } from "../../../../redux/hooks.ts";
 import { confirmOperation } from "../../../../redux/thunks/dialog.ts";
 import OpenIDButtons from "../../Login/Signin/OpenIDButtons.tsx";
+import SessionManager from "../../../../session";
 
-export default function OpenIDAssociations({
-  setting,
-  setSetting,
-}: {
-  setting: UserSettings;
-  setSetting: (setting: UserSettings) => void;
-}) {
+export default function OpenIDAssociations({ setting, setSetting }: ProfileSettingProps) {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const [loading, setLoading] = useState(false);
+  const active = useRef(true);
+  useEffect(() => {
+    active.current = true;
+    return () => {
+      active.current = false;
+    };
+  }, []);
   const providers = useAppSelector((s) => s.siteConfig.login.config.login_providers ?? []);
   const bindings = setting.open_id ?? [];
   const unlink = async (id: number) => {
+    const actor = SessionManager.currentLoginOrNull()?.user.id;
+    if (!actor || loading) return;
     try {
       await dispatch(confirmOperation(t("openid.unlinkConfirm")));
+      if (!active.current || SessionManager.currentLoginOrNull()?.user.id !== actor) return;
       setLoading(true);
       await dispatch(unlinkOpenID(id));
-      setSetting({ ...setting, open_id: bindings.filter((b) => b.provider !== id) });
+      if (active.current && SessionManager.currentLoginOrNull()?.user.id === actor) {
+        setSetting((current) =>
+          current ? { ...current, open_id: current.open_id?.filter((binding) => binding.provider !== id) } : current,
+        );
+      }
     } catch {
       // The request stack displays server errors; cancel leaves the list intact.
     } finally {
-      setLoading(false);
+      if (active.current) setLoading(false);
     }
   };
   return (

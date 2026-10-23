@@ -35,7 +35,9 @@ const PasskeyList = (props: PasskeyProps) => {
 
   const [loading, setLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const canRegister = props.setting.credential_capabilities?.passkey_register !== false;
   const addPasskey = async () => {
+    if (!canRegister || loading) return;
     if (!navigator.credentials || !window.PublicKeyCredential) {
       enqueueSnackbar({
         message: t("setting.browserNotSupported"),
@@ -113,7 +115,7 @@ const PasskeyList = (props: PasskeyProps) => {
     <Box>
       {!props.setting.passkeys?.length && (
         <Box
-          onClick={addPasskey}
+          onClick={canRegister && !loading ? addPasskey : undefined}
           sx={{
             display: "flex",
             flexDirection: "column",
@@ -181,7 +183,7 @@ const PasskeyList = (props: PasskeyProps) => {
         ))}
       </List>
       <SecondaryLoadingButton
-        disabled={props.setting.credential_capabilities?.passkey_register === false}
+        disabled={!canRegister}
         sx={{ mt: 1 }}
         variant={"contained"}
         loading={loading}

@@ -710,7 +710,8 @@
     "automaticPolicy": "Automatic",
     "automaticPolicyDestination": "Current folder destination: {{name}}",
     "noAvailablePolicies": "No available storage policies",
-    "chooseFiles": "Choose files"
+    "chooseFiles": "Choose files",
+    "retryPolicies": "Retry loading destinations"
   },
   "share": {
     "statistics": "Statistics",
@@ -1062,7 +1063,16 @@
       "group_field_mapping": "Initial group claim"
     },
     "release": "Release managed account",
-    "releaseConfirm": "Release this account so the user can establish local credentials through password recovery?"
+    "releaseConfirm": "Release this account so the user can establish local credentials through password recovery?",
+    "invalidJSONObject": "Enter a valid JSON object.",
+    "contextExpired": "Login context expired. Please restart sign in.",
+    "reviewAssociation": "Return to the original account to review the association.",
+    "missingLoginResponse": "The login response is incomplete. Please restart sign in.",
+    "invalidProvider": "Invalid sign-in provider. Please restart sign in.",
+    "ambiguousCallback": "The sign-in callback contains conflicting parameters. Please restart sign in.",
+    "incompleteCallback": "The sign-in callback is incomplete. Please restart sign in.",
+    "providerMismatch": "The provider does not match this sign-in request. Please restart sign in.",
+    "accountChanged": "The active account changed. Restart association from the original account."
   },
   "audit": {
     "filter": "Activity filter",

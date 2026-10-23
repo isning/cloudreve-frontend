@@ -1,5 +1,5 @@
 import { Box, Stack, Typography } from "@mui/material";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FileResponse, FileType, Metadata } from "../../../api/explorer.ts";
 import { useAppDispatch } from "../../../redux/hooks.ts";
 import { loadFileThumb } from "../../../redux/thunks/file.ts";

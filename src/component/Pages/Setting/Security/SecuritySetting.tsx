@@ -44,7 +44,7 @@ import dayjs from "dayjs";
 
 export interface SecuritySettingProps {
   setting: UserSettings;
-  setSetting: (setting: UserSettings) => void;
+  setSetting: ProfileSettingProps["setSetting"];
 }
 
 const StyledOAuthGrantListItem = styled(ListItem)(({ theme }) => ({
@@ -222,31 +222,25 @@ const SecuritySetting = ({ setting, setSetting }: ProfileSettingProps) => {
   };
 
   const on2FAChange = (enabled: boolean) => () => {
-    setSetting({
-      ...setting,
-      two_fa_enabled: enabled,
-    });
+    setSetting((current) => (current ? { ...current, two_fa_enabled: enabled } : current));
   };
 
   const onPasskeyAdded = (passkey: Passkey) => {
-    setSetting({
-      ...setting,
-      passkeys: setting.passkeys ? [...setting.passkeys, passkey] : [passkey],
-    });
+    setSetting((current) => (current ? { ...current, passkeys: [...(current.passkeys ?? []), passkey] } : current));
   };
 
   const onPasskeyDeleted = (passkeyID: string) => {
-    setSetting({
-      ...setting,
-      passkeys: setting.passkeys?.filter((p) => p.id !== passkeyID),
-    });
+    setSetting((current) =>
+      current ? { ...current, passkeys: current.passkeys?.filter((p) => p.id !== passkeyID) } : current,
+    );
   };
 
   const onOAuthGrantRevoked = (clientId: string) => {
-    setSetting({
-      ...setting,
-      oauth_grants: setting.oauth_grants?.filter((x) => x.client_id != clientId),
-    });
+    setSetting((current) =>
+      current
+        ? { ...current, oauth_grants: current.oauth_grants?.filter((grant) => grant.client_id !== clientId) }
+        : current,
+    );
   };
 
   return (

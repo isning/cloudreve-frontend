@@ -8,7 +8,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { bindStoragePolicy, getAvailableStoragePolicies } from "../../../api/api.ts";
 import { StoragePolicy } from "../../../api/explorer.ts";

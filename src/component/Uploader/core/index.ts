@@ -167,15 +167,15 @@ export default class UploadManager {
   }
 
   // 选择文件
-  public select = (dst: string, type = SelectType.File): Promise<Base[]> => {
+  public select = (dst: string, type = SelectType.File, resume?: Task): Promise<Base[]> => {
     return new Promise<Base[]>((resolve, reject) => {
-      if (this.policy == undefined) {
+      if (this.policy == undefined && !resume) {
         this.logger.warn(`Calling file selector while no policy is set`);
         throw new UploaderError(UploaderErrorName.NoPolicySelected, "No policy selected.");
       }
 
-      this.fileInput.onchange = (ev: Event) => this.addFiles(ev, dst, resolve, reject);
-      this.directoryInput.onchange = (ev: Event) => this.addFiles(ev, dst, resolve, reject);
+      this.fileInput.onchange = (ev: Event) => this.addFiles(ev, dst, resolve, reject, undefined, resume);
+      this.directoryInput.onchange = (ev: Event) => this.addFiles(ev, dst, resolve, reject, undefined, resume);
       this.fileInput.value = "";
       this.directoryInput.value = "";
       type == SelectType.File ? this.fileInput.click() : this.directoryInput.click();
@@ -241,6 +241,7 @@ export default class UploadManager {
     resolve: (value: Base[] | PromiseLike<Base[]>) => void,
     reject: (reason?: any) => void,
     getName?: (file: File) => string,
+    resume?: Task,
   ) => {
     let files: File[] = [];
     if (ev instanceof Event) {
@@ -259,13 +260,13 @@ export default class UploadManager {
         uploaders = files.map((file): Base => {
           return this.dispatchUploader({
             type: TaskType.file,
-            policy: this.policy as StoragePolicy,
-            automaticPolicy: this.automaticPolicy,
+            policy: resume?.policy ?? (this.policy as StoragePolicy),
+            automaticPolicy: resume ? resume.automaticPolicy : this.automaticPolicy,
             dst: getDirectoryUploadDst(dst, file),
             file: file,
             blob: file,
             size: file.size,
-            overwrite: this.overwrite,
+            overwrite: resume ? resume.overwrite : this.overwrite,
             name: getName ? getName(file) : file.name,
             chunkProgress: [],
             resumed: false,

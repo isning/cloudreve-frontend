@@ -1,5 +1,5 @@
 import GroupSelectionInput from "../../Common/GroupSelectionInput.tsx";
-import { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Alert,
   Box,
@@ -18,9 +18,11 @@ import { useAppDispatch } from "../../../../redux/hooks.ts";
 export default function OpenIDProviderEditor({
   provider,
   onChange,
+  resetVersion,
 }: {
   provider: ExternalProvider;
   onChange: (provider: ExternalProvider) => void;
+  resetVersion?: number;
 }) {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
@@ -31,6 +33,18 @@ export default function OpenIDProviderEditor({
   const [error, setError] = useState("");
   const [callback, setCallback] = useState("");
   const [callbackError, setCallbackError] = useState("");
+  const latest = useRef({ provider, onChange });
+  const discoveryVersion = useRef(0);
+  useEffect(() => {
+    latest.current = { provider, onChange };
+  }, [provider, onChange]);
+  useEffect(() => {
+    discoveryVersion.current++;
+    setLoading(false);
+    return () => {
+      discoveryVersion.current++;
+    };
+  }, [provider.id, endpoint, resetVersion]);
   useEffect(() => {
     let active = true;
     setCallback("");
@@ -61,15 +75,18 @@ export default function OpenIDProviderEditor({
     />
   );
   const discover = async () => {
+    const version = ++discoveryVersion.current;
     setLoading(true);
     setError("");
     try {
       const document = JSON.parse(await dispatch(discoverOpenID(endpoint)));
-      onChange({ ...provider, wellknown: document });
+      if (version === discoveryVersion.current) {
+        latest.current.onChange({ ...latest.current.provider, wellknown: document });
+      }
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      if (version === discoveryVersion.current) setError(e instanceof Error ? e.message : String(e));
     } finally {
-      setLoading(false);
+      if (version === discoveryVersion.current) setLoading(false);
     }
   };
   return (
@@ -115,7 +132,12 @@ export default function OpenIDProviderEditor({
           <JSONField
             label={t("openid.discoveryDocument")}
             value={provider.wellknown ?? {}}
-            onChange={(value) => onChange({ ...provider, wellknown: value })}
+            resetVersion={resetVersion}
+            onChange={(value) => {
+              discoveryVersion.current++;
+              setLoading(false);
+              onChange({ ...provider, wellknown: value });
+            }}
           />
         </>
       )}
@@ -155,6 +177,7 @@ export default function OpenIDProviderEditor({
           <JSONField
             label={t("openid.groupMapping")}
             value={(provider.config.group_mapping ?? {}) as Record<string, unknown>}
+            resetVersion={resetVersion}
             onChange={(value) => set("group_mapping", value)}
           />
         </Stack>
@@ -166,21 +189,31 @@ function JSONField({
   label,
   value,
   onChange,
+  resetVersion,
 }: {
   label: string;
   value: Record<string, unknown>;
   onChange: (value: Record<string, unknown>) => void;
+  resetVersion?: number;
 }) {
+  const { t } = useTranslation();
   const [invalid, setInvalid] = useState<string>();
+  const input = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
+  const serialized = JSON.stringify(value, null, 2);
+  useEffect(() => {
+    setInvalid(undefined);
+    input.current?.setCustomValidity("");
+  }, [serialized, resetVersion]);
   return (
     <TextField
       fullWidth
       multiline
       minRows={3}
       label={label}
+      inputRef={input}
       error={invalid !== undefined}
-      helperText={invalid !== undefined ? "Invalid JSON object" : undefined}
-      value={invalid ?? JSON.stringify(value, null, 2)}
+      helperText={invalid !== undefined ? t("openid.invalidJSONObject") : undefined}
+      value={invalid ?? serialized}
       onChange={(e) => {
         try {
           const parsed = JSON.parse(e.target.value);
@@ -190,7 +223,7 @@ function JSONField({
           onChange(parsed);
         } catch {
           setInvalid(e.target.value);
-          e.target.setCustomValidity("Invalid JSON object");
+          e.target.setCustomValidity(t("openid.invalidJSONObject"));
         }
       }}
     />

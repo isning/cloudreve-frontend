@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Alert, Box, Button, CircularProgress, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
@@ -8,7 +8,13 @@ import { AppError, Code } from "../../../../api/request.ts";
 import { useAppDispatch } from "../../../../redux/hooks.ts";
 import { refreshUserSession } from "../../../../redux/thunks/session.ts";
 import SessionManager from "../../../../session";
-import { extendOpenIDForMFA, forgetOpenID, OpenIDReturn, readOpenID } from "../../../../session/openid.ts";
+import {
+  extendOpenIDForMFA,
+  forgetOpenID,
+  OpenIDContextError,
+  OpenIDReturn,
+  readOpenID,
+} from "../../../../session/openid.ts";
 import Phase2FA from "../Phases/Phase2FA.tsx";
 
 export default function OpenIDCallback() {
@@ -26,12 +32,12 @@ export default function OpenIDCallback() {
   const finish = async (response: LoginResponse | undefined, context: OpenIDReturn) => {
     if (context.linking) {
       if (response || SessionManager.currentLoginOrNull()?.user.id !== context.userID)
-        throw new Error("Return to the original account to review the association.");
+        throw new Error(t("openid.reviewAssociation"));
       forgetOpenID(state);
       navigate(context.returnTo, { replace: true });
       return;
     }
-    if (!response?.token || !response.user) throw new Error("Missing login response");
+    if (!response?.token || !response.user) throw new Error(t("openid.missingLoginResponse"));
     forgetOpenID(state);
     await dispatch(refreshUserSession(response, context.returnTo));
   };
@@ -45,18 +51,18 @@ export default function OpenIDCallback() {
       try {
         context = readOpenID(state);
         if (!provider_id || !/^\d+$/.test(provider_id) || !Number.isSafeInteger(Number(provider_id)))
-          throw new Error("Invalid provider identifier");
+          throw new Error(t("openid.invalidProvider"));
         if (query.getAll("state").length !== 1 || query.getAll("code").length > 1)
-          throw new Error("Ambiguous login callback");
+          throw new Error(t("openid.ambiguousCallback"));
         if (!state || !query.get("code") || query.get("error"))
-          throw new Error(query.get("error_description") ?? query.get("error") ?? "Incomplete login callback");
-        if (context.provider !== Number(provider_id)) throw new Error("Provider does not match this login");
+          throw new Error(query.get("error_description") ?? query.get("error") ?? t("openid.incompleteCallback"));
+        if (context.provider !== Number(provider_id)) throw new Error(t("openid.providerMismatch"));
         if (
           context.linking &&
           SessionManager.currentLoginOrNull() &&
           SessionManager.currentLogin().user.id !== context.userID
         )
-          throw new Error("The active account changed. Restart association from the original account.");
+          throw new Error(t("openid.accountChanged"));
         await finish(await dispatch(finishOpenID(Number(provider_id), query.get("code")!, state)), context);
       } catch (e) {
         if (e instanceof AppError && e.code === Code.Continue && context) {
@@ -64,7 +70,9 @@ export default function OpenIDCallback() {
           setChallenge(e.response.data);
         } else {
           forgetOpenID(state);
-          setError(e instanceof Error ? e.message : String(e));
+          setError(
+            e instanceof OpenIDContextError ? t("openid.contextExpired") : e instanceof Error ? e.message : String(e),
+          );
         }
       } finally {
         setLoading(false);
@@ -79,7 +87,9 @@ export default function OpenIDCallback() {
       const context = readOpenID(state);
       await finish(await dispatch(completeOpenIDMFA(otp, challenge)), context);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(
+        e instanceof OpenIDContextError ? t("openid.contextExpired") : e instanceof Error ? e.message : String(e),
+      );
     } finally {
       setLoading(false);
       setOTP("");

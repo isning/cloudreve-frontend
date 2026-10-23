@@ -1,5 +1,5 @@
 import { Box, Chip, styled, Typography } from "@mui/material";
-import { useMemo } from "react";
+import React, { useMemo } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { FileType, StoragePolicy } from "../../../api/explorer.ts";
 import { TaskSummary, TaskType } from "../../../api/workflow.ts";
@@ -95,15 +95,19 @@ const TaskSummaryTitle = ({ type, summary, isInDashboard = false, relocationPoli
           i18nKey="setting.relocateFileTo"
           values={{
             policy: relocationPolicies
-              ? relocationPolicies.find((p) => p.id === summary?.props.dst_policy_id)?.name ?? t("fileManager.unavailableStorageDestination", { id: summary?.props.dst_policy_id ?? "?" })
+              ? relocationPolicies.find((p) => p.id === summary?.props.dst_policy_id)?.name ??
+                t("fileManager.unavailableStorageDestination", { id: summary?.props.dst_policy_id ?? "?" })
               : summary?.props.dst_policy_name ?? summary?.props.dst_policy_id ?? t("fileManager.storagePolicy"),
-            more: "",
+            more: (summary?.props.src_multiple?.length ?? 0) > 3 ? "..." : "",
           }}
           components={[
-            <StyledFileBadge
-              variant="outlined"
-              simplifiedFile={{ type: FileType.file, path: summary?.props.src_multiple?.[0] ?? newMyUri("").toString() }}
-            />,
+            <span key={0}>
+              {summary?.props.src_multiple
+                ?.slice(0, 3)
+                .map((src, index) => (
+                  <StyledFileBadge key={index} variant="outlined" simplifiedFile={{ type: FileType.file, path: src }} />
+                ))}
+            </span>,
           ]}
         />
       );

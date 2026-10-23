@@ -45,10 +45,7 @@ const SidebarContent = ({ target, inPhotoViewer, setTarget, validating = false }
   const tab = useAppSelector((state) => state.globalState.sidebarTab) === "activity" ? 1 : 0;
   const targetDisplayOptions = useActionDisplayOpt(target && !validating ? [target] : []);
   const canViewActivities =
-    !!SessionManager.currentLoginOrNull() &&
-    targetDisplayOptions.showInfo &&
-    targetDisplayOptions.allReadable &&
-    targetDisplayOptions.allUpdatable;
+    !!SessionManager.currentLoginOrNull() && targetDisplayOptions.showInfo && targetDisplayOptions.allUpdatable;
   return (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <Header target={target} />

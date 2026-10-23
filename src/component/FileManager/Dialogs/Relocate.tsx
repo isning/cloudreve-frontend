@@ -9,7 +9,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useSnackbar } from "notistack";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getAvailableStoragePolicies, sendRelocate } from "../../../api/api.ts";
 import { AppError, Code } from "../../../api/request.ts";

@@ -14,10 +14,11 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityFilter, FileActivity, getFileActivities } from "../../../api/audit";
-import { FileResponse } from "../../../api/explorer";
+import { FilePermission, FileResponse } from "../../../api/explorer";
 import { setVersionControlDialog } from "../../../redux/globalStateSlice";
 import { useAppDispatch } from "../../../redux/hooks";
 import { getEventName } from "../../../util/audit";
+import { hasPermission } from "../../../util/permission";
 import CrUri from "../../../util/uri";
 
 const locationLabel = (value: string) => {
@@ -159,7 +160,7 @@ export default function Activities({ target }: { target: FileResponse }) {
                   {new Date(activity.content.entity_create_time).toLocaleString()}
                 </Typography>
               )}
-              {activity.version_id && (
+              {activity.version_id && hasPermission(target, FilePermission.read) && (
                 <Button
                   size="small"
                   sx={{ alignSelf: "start" }}

@@ -7,6 +7,11 @@ export interface OpenIDReturn {
 }
 const prefix = "cloudreve:openid:return:";
 const ttl = 10 * 60 * 1000;
+export class OpenIDContextError extends Error {
+  constructor() {
+    super("openid.contextExpired");
+  }
+}
 export function safeReturn(value: string | null | undefined): string {
   if (!value || !value.startsWith("/") || value.startsWith("//") || value.includes("\\")) return "/home";
   const target = new URL(value, window.location.origin);
@@ -31,7 +36,12 @@ export function rememberOpenID(state: string, context: Omit<OpenIDReturn, "expir
   );
 }
 export function readOpenID(state: string): OpenIDReturn {
-  const context = JSON.parse(sessionStorage.getItem(prefix + state) ?? "null");
+  let context;
+  try {
+    context = JSON.parse(sessionStorage.getItem(prefix + state) ?? "null");
+  } catch {
+    throw new OpenIDContextError();
+  }
   if (
     !context ||
     context.expires <= Date.now() ||
@@ -40,7 +50,7 @@ export function readOpenID(state: string): OpenIDReturn {
     typeof context.linking !== "boolean" ||
     typeof context.returnTo !== "string"
   )
-    throw new Error("Login context expired. Please restart sign in.");
+    throw new OpenIDContextError();
   return { ...context, returnTo: safeReturn(context.returnTo) };
 }
 export function extendOpenIDForMFA(state: string, context: OpenIDReturn) {

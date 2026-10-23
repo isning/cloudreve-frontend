@@ -1,6 +1,6 @@
 import OpenIDButtons from "../Signin/OpenIDButtons.tsx";
 import { Box, Divider, FormControl, Link, Stack } from "@mui/material";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { Link as RouterLink } from "react-router-dom";
 import { LoginResponse } from "../../../../api/user.ts";

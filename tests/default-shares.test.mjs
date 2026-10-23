@@ -46,7 +46,9 @@ function fixture(filename, props = {}) {
     react,
     "react/jsx-runtime": { jsx, jsxs: jsx, Fragment: "Fragment" },
     "@mui/lab": { LoadingButton: "LoadingButton" },
-    "@mui/material": Object.fromEntries(["Alert", "Stack", "Typography", "Autocomplete", "Chip"].map((n) => [n, n])),
+    "@mui/material": Object.fromEntries(
+      ["Alert", "Button", "Stack", "Typography", "Autocomplete", "Chip"].map((n) => [n, n]),
+    ),
     "react-i18next": { useTranslation: () => ({ t: (key, opts) => (opts ? `${key}:${JSON.stringify(opts)}` : key) }) },
   };
   const code = ts.transpileModule(readFileSync(new URL(`../${filename}`, import.meta.url), "utf8"), {
@@ -181,6 +183,12 @@ test("selector error preserves IDs and a new search retries", async () => {
   f.requests[1].resolve({ shares: [{ id: 12, edges: { file: { name: "New" } } }] });
   await tick();
   f.render();
+  assert.equal(f.find("Alert").props.severity, "warning");
+  f.find("Button").props.onClick();
+  f.render();
+  f.requests[2].resolve({ shares: [{ id: 9, edges: { file: { name: "Recovered selection" } } }] });
+  await tick();
+  f.render();
   assert.equal(f.find("Alert"), undefined);
   assert.deepEqual(Array.from(f.find("Autocomplete").props.value), [9]);
 });
@@ -189,4 +197,22 @@ test("unused pinned-share stub stays disabled without HTTP", () => {
   f.flushTimers();
   assert.equal(f.requests.length, 0);
   assert.equal(f.find("Autocomplete").props.disabled, true);
+});
+
+test("selector labels expired and exhausted saved shares without removing them", async () => {
+  const f = fixture(admin, { value: [7, 8, 9], onChange() {} });
+  f.requests[0].resolve({
+    shares: [
+      { id: 7, expires: "2000-01-01T00:00:00Z", edges: { file: { name: "Expired" } } },
+      { id: 8, remain_downloads: 0, edges: { file: { name: "Exhausted" } } },
+      { id: 9, remain_downloads: 1, edges: { file: { name: "Available" } } },
+    ],
+  });
+  await tick();
+  f.render();
+  const input = f.find("Autocomplete");
+  assert.match(input.props.getOptionLabel(7), /unavailableShare/);
+  assert.match(input.props.getOptionLabel(8), /unavailableShare/);
+  assert.match(input.props.getOptionLabel(9), /Available/);
+  assert.deepEqual(Array.from(input.props.value), [7, 8, 9]);
 });

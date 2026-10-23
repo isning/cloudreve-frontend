@@ -1,3 +1,4 @@
+import React from "react";
 import OpenIDButtons from "../Signin/OpenIDButtons.tsx";
 import { Divider, FormControl, Link, Stack, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";

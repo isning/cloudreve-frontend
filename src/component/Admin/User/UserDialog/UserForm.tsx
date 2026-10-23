@@ -17,7 +17,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { useSnackbar } from "notistack";
-import { useCallback, useContext, useState } from "react";
+import React, { useCallback, useContext, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { sendCalibrateUserStorage } from "../../../../api/api";
 import { UserStatus } from "../../../../api/dashboard";

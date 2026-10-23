@@ -824,7 +824,10 @@
     "sharedWithMeACL": "Discover shares by permissions",
     "sharedWithMeACLDescription": "Includes all accessible share links, including links open to everyone. Saved shortcuts are preserved when switching modes.",
     "unavailableShare": "Unavailable or loading",
-    "defaultSharesLoadError": "Could not load shares. Search again to retry. Selected IDs are preserved."
+    "defaultSharesLoadError": "Could not load shares. Retry loading; selected IDs are preserved.",
+    "invalidDefaultShares": "The saved default-share configuration is invalid. Clear it or select valid shares, then save.",
+    "clearDefaultShares": "Clear configuration",
+    "retryDefaultShares": "Retry loading shares"
   },
   "giftCodes": {
     "giftCodesSettings": "Gift Codes",

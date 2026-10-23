@@ -13,7 +13,7 @@ import { getAvailableStoragePolicies } from "../../api/api.ts";
 import { StoragePolicy } from "../../api/explorer.ts";
 import CrUri, { Filesystem } from "../../util/uri";
 import { useSnackbar } from "notistack";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ContextMenuTypes } from "../../redux/fileManagerSlice.ts";
 import {
@@ -53,6 +53,8 @@ const Uploader = () => {
   });
   const [choice, setChoice] = useState<{ owner: string; id: string }>({ owner: "", id: "" });
   const [loadingPolicies, setLoadingPolicies] = useState(false);
+  const [policyLoadFailed, setPolicyLoadFailed] = useState(false);
+  const policyRequest = useRef(0);
   const [selection, setSelection] = useState<{ path: string; type: SelectType }>();
 
   const uploadEnabled = useRef<boolean>(false);
@@ -148,11 +150,12 @@ const Uploader = () => {
     });
   }, [enqueueSnackbar, taskAdded, dispatch]);
 
-  useEffect(() => {
-    let active = true;
-    setChoice({ owner: ownerID, id: "" });
-    setSelection(undefined);
+  const loadPolicies = useCallback(() => {
+    const request = ++policyRequest.current;
+    const isCurrent = () =>
+      request === policyRequest.current && (SessionManager.currentLoginOrNull()?.user.id ?? "") === ownerID;
     setLoadingPolicies(true);
+    setPolicyLoadFailed(false);
     if (!ownerID || sharedDestination) {
       setDestinations({ owner: ownerID, policies: [] });
       setLoadingPolicies(false);
@@ -160,22 +163,31 @@ const Uploader = () => {
     }
     dispatch(getAvailableStoragePolicies())
       .then((available) => {
-        if (active) setDestinations({ owner: ownerID, policies: available });
+        if (isCurrent()) setDestinations({ owner: ownerID, policies: available });
       })
       .catch(() => {
-        if (active) setDestinations({ owner: ownerID, policies: [] });
+        if (isCurrent()) {
+          setDestinations({ owner: ownerID, policies: [] });
+          setPolicyLoadFailed(true);
+        }
       })
       .finally(() => {
-        if (active) setLoadingPolicies(false);
+        if (isCurrent()) setLoadingPolicies(false);
       });
-    return () => {
-      active = false;
-    };
   }, [ownerID, sharedDestination, dispatch]);
 
   useEffect(() => {
+    setChoice({ owner: ownerID, id: "" });
+    setSelection(undefined);
+    loadPolicies();
+    return () => {
+      ++policyRequest.current;
+    };
+  }, [loadPolicies]);
+
+  useEffect(() => {
     uploadManager.setPolicy(
-      policies.length ? policies.find((p) => p.id === choiceID) ?? policy ?? policies[0] : undefined,
+      policies.length ? policies.find((p) => p.id === choiceID) ?? automaticDestination : undefined,
       path,
       !choiceID,
     );
@@ -197,29 +209,28 @@ const Uploader = () => {
   const selectFile = useCallback(
     (path: string, type = SelectType.File, original?: Base) => {
       if (!original) {
+        loadPolicies();
         setSelection({ path, type });
         return;
       }
       dispatch(openUploadTaskList());
 
-      // eslint-disable-next-line no-unreachable
+      const actor = SessionManager.currentLoginOrNull()?.user.id;
       uploadManager
-        .select(path, type)
-        .then(taskAdded(original))
+        .select(path, type, original.task)
+        .then((tasks) => {
+          if (SessionManager.currentLoginOrNull()?.user.id === actor) taskAdded(original)(tasks);
+        })
         .catch((e) => {
           handleUploaderError(e);
         });
     },
-    [uploadManager, taskAdded, handleUploaderError, dispatch],
+    [uploadManager, taskAdded, handleUploaderError, dispatch, loadPolicies],
   );
 
   const confirmSelection = () => {
     if (!selection || !policies.length) return;
-    uploadManager.setPolicy(
-      policies.find((p) => p.id === choiceID) ?? policy ?? policies[0],
-      selection.path,
-      !choiceID,
-    );
+    uploadManager.setPolicy(policies.find((p) => p.id === choiceID) ?? automaticDestination, selection.path, !choiceID);
     uploadManager.select(selection.path, selection.type).then(taskAdded()).catch(handleUploaderError);
     setSelection(undefined);
   };
@@ -372,6 +383,7 @@ const Uploader = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setSelection(undefined)}>{t("cancel", { ns: "common" })}</Button>
+          {policyLoadFailed && <Button onClick={loadPolicies}>{t("uploader.retryPolicies")}</Button>}
           <Button disabled={loadingPolicies || !policies.length} onClick={confirmSelection}>
             {t("uploader.chooseFiles")}
           </Button>

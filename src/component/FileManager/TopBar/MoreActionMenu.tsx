@@ -1,6 +1,6 @@
 import { ListItemIcon, ListItemText, MenuProps, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { usePopupState } from "material-ui-popup-state/hooks";
-import { useCallback, useContext } from "react";
+import React, { useCallback, useContext } from "react";
 import { useTranslation } from "react-i18next";
 import { clearSelected, ContextMenuTypes } from "../../../redux/fileManagerSlice.ts";
 import { setRelocateDialog } from "../../../redux/globalStateSlice.ts";
@@ -44,7 +44,7 @@ const MoreActionMenu = ({ onClose, ...rest }: MenuProps) => {
 
   const onCreateShortcutClicked = useCallback(() => {
     dispatch(createShareShortcut(fmIndex));
-    onClose && onClose({}, "escapeKeyDown");
+    onClose?.({}, "escapeKeyDown");
   }, [dispatch, onClose, fmIndex]);
 
   const onSelectAllClicked = useCallback(() => {

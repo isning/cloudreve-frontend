@@ -33,7 +33,7 @@ export const StyledAccordion = styled(Accordion)(({ theme }) => ({
 export interface SettingSectionProps {}
 
 const SSOSettings = () => {
-  const { values, setSettings } = useContext(SettingContext);
+  const { values, setSettings, resetVersion } = useContext(SettingContext);
   const { t } = useTranslation();
   let registry: ProviderRegistry;
   try {
@@ -110,7 +110,7 @@ const SSOSettings = () => {
           </AccordionSummary>
           <AccordionDetails>
             {["oidc", "logto"].includes(provider.type) ? (
-              <OpenIDProviderEditor provider={provider} onChange={update} />
+              <OpenIDProviderEditor provider={provider} onChange={update} resetVersion={resetVersion} />
             ) : (
               <Alert severity="info">{t("openid.unsupported")}</Alert>
             )}

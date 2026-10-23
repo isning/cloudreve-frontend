@@ -344,6 +344,10 @@ function fixture(propertyType = "text", variant = "desktop", thumbnailFailure = 
     details(props) {
       return find(render(SidebarContent, props), "Details").props;
     },
+    activityVisible(props) {
+      const tabs = find(render(SidebarContent, props), "Tabs");
+      return [tabs.props.children].flat(Infinity).some((tab) => tab?.props?.id === "file-activity-tab");
+    },
     permissionView(props) {
       const control = find(render(Details, this.details(props)), "FilePermissions");
       return render(FilePermissions, control.props);
@@ -430,6 +434,21 @@ const listOnly = { ...original, permission: "IA==" };
 for (const variant of ["desktop", "mobile"]) {
   const detailsFixture = (type) => fixture(type, variant);
   const testDetails = (name, run) => test(`${variant}: ${name}`, run);
+
+  testDetails("list and update permit activity without granting original content reads", async () => {
+    const f = detailsFixture();
+    await f.open();
+    const collaborator = { ...original, permission: "Ig==" };
+    await f.refresh([collaborator]);
+    const ready = await f.reply(collaborator);
+    assert.equal(f.details(ready).targetDisplayOptions.allReadable, false);
+    assert.equal(f.activityVisible(ready), true);
+    const validating = await f.refresh([collaborator]);
+    assert.equal(f.activityVisible(validating), false);
+    const readOnly = { ...original, permission: "IQ==" };
+    await f.reply(readOnly);
+    assert.equal(f.activityVisible(f.view()), false);
+  });
 
   testDetails("a list refresh invalidates Details actions until current info is loaded", async () => {
     const f = detailsFixture();

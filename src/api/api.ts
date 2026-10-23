@@ -16,7 +16,6 @@ import {
   GetOAuthClientResponse,
   GetOauthRedirectService,
   GetSettingService,
-  GroupEnt,
   HomepageSummary,
   ListEntityResponse,
   ListFileResponse,

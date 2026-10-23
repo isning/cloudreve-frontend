@@ -254,10 +254,10 @@ export default function PermissionEditor({
                             disabled={
                               (rule.base === "anonymous" &&
                                 !canEscalate &&
+                                !mask.enabled(bit) &&
                                 bit !== FilePermission.read &&
                                 bit !== FilePermission.list) ||
-                              ((rule.base === "everyone" || rule.base === "anonymous") &&
-                                bit === FilePermission.share) ||
+                              (rule.base === "anonymous" && bit === FilePermission.share) ||
                               (!folder && bit === FilePermission.create)
                             }
                             onChange={(_, checked) =>

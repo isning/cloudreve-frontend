@@ -21,6 +21,7 @@ export interface SettingContextProps {
     [key: string]: string;
   };
   setSettings: (settings: { [key: string]: string }) => void;
+  resetVersion?: number;
   formRef?: React.RefObject<HTMLFormElement>;
 }
 
@@ -88,6 +89,7 @@ const SettingsWrapper = ({ settings, children }: SettingsWrapperProps) => {
   }>({});
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [resetVersion, setResetVersion] = useState(0);
   const setSettings = (settings: { [key: string]: string }) => {
     setModifiedValues((prev) => ({ ...prev, ...settings }));
   };
@@ -115,6 +117,7 @@ const SettingsWrapper = ({ settings, children }: SettingsWrapperProps) => {
 
   const revert = () => {
     setModifiedValues(values);
+    setResetVersion((version) => version + 1);
   };
 
   const submit = () => {
@@ -152,6 +155,7 @@ const SettingsWrapper = ({ settings, children }: SettingsWrapperProps) => {
       value={{
         values: modifiedValues,
         setSettings,
+        resetVersion,
         formRef,
       }}
     >

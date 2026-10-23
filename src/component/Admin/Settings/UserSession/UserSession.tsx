@@ -1,5 +1,16 @@
-import { Box, FormControl, FormControlLabel, Link, ListItemText, Stack, Switch, Typography } from "@mui/material";
-import { useContext, useMemo } from "react";
+import {
+  Alert,
+  Box,
+  Button,
+  FormControl,
+  FormControlLabel,
+  Link,
+  ListItemText,
+  Stack,
+  Switch,
+  Typography,
+} from "@mui/material";
+import React, { useContext, useMemo } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { Link as RouterLink } from "react-router-dom";
 import { isTrueVal } from "../../../../session/utils.ts";
@@ -19,14 +30,21 @@ const UserSession = () => {
   const { formRef, setSettings, values } = useContext(SettingContext);
 
   const defaultSymbolics = useMemo(() => {
-    let result: number[] = [];
     try {
-      const parsed = JSON.parse(values?.default_symbolics ?? "[]");
-      if (Array.isArray(parsed) && parsed.every((id) => Number.isSafeInteger(id) && id > 0)) result = parsed;
-    } catch (e) {
-      console.error(e);
+      const raw = values?.default_symbolics ?? "[]";
+      const parsed = JSON.parse(raw);
+      if (
+        raw.length <= 8192 &&
+        Array.isArray(parsed) &&
+        parsed.length <= 100 &&
+        parsed.every((id) => Number.isSafeInteger(id) && id > 0)
+      ) {
+        return { ids: [...new Set<number>(parsed)], invalid: false };
+      }
+    } catch {
+      // Keep the saved value intact until an administrator explicitly repairs it.
     }
-    return result;
+    return { ids: [], invalid: true };
   }, [values?.default_symbolics]);
 
   return (
@@ -131,9 +149,21 @@ const UserSession = () => {
             <SettingForm title={t("settings.defaultSymbolics")} lgWidth={5}>
               <FormControl>
                 <SharesInput
-                  value={defaultSymbolics}
+                  value={defaultSymbolics.ids}
                   onChange={(ids) => setSettings({ default_symbolics: JSON.stringify(ids) })}
                 />
+                {defaultSymbolics.invalid && (
+                  <Alert
+                    severity="error"
+                    action={
+                      <Button color="inherit" onClick={() => setSettings({ default_symbolics: "[]" })}>
+                        {t("settings.clearDefaultShares")}
+                      </Button>
+                    }
+                  >
+                    {t("settings.invalidDefaultShares")}
+                  </Alert>
+                )}
                 <NoMarginHelperText>
                   <Trans
                     i18nKey="settings.defaultSymbolicsDes"

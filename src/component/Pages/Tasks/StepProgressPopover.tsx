@@ -1,6 +1,6 @@
 import { Box, Divider, PopoverProps, Typography } from "@mui/material";
 import HoverPopover from "material-ui-popup-state/HoverPopover";
-import { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getTasksPhaseProgress } from "../../../api/api.ts";
 import { TaskProgress, TaskProgresses } from "../../../api/workflow.ts";

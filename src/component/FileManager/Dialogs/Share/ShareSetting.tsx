@@ -17,7 +17,7 @@ import {
 import MuiAccordion from "@mui/material/Accordion";
 import MuiAccordionDetails from "@mui/material/AccordionDetails";
 import MuiAccordionSummary from "@mui/material/AccordionSummary";
-import { useState } from "react";
+import React, { useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { FileResponse, FileType, PermissionSetting } from "../../../../api/explorer.ts";
 import PermissionEditor, { defaultSharePermissions } from "./PermissionEditor";

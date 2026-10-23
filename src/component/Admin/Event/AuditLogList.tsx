@@ -17,7 +17,6 @@ import {
   TableCell,
   TableContainer,
   TableHead,
-  TablePagination,
   TableRow,
   TableSortLabel,
   TextField,
@@ -36,6 +35,7 @@ import PageContainer from "../../Pages/PageContainer";
 import PageHeader from "../../Pages/PageHeader";
 import AuditArchiveDialog from "./AuditArchiveDialog";
 import AuditCategorySelect from "./AuditCategorySelect";
+import TablePagination from "../Common/TablePagination";
 
 const boundedInt = (value: string | null, fallback: number, max: number) =>
   Math.min(max, Math.max(1, Number.parseInt(value ?? "", 10) || fallback));
@@ -268,13 +268,12 @@ export default function AuditLogList() {
             </TableBody>
           </Table>
           <TablePagination
-            component="div"
-            count={total}
-            page={page - 1}
+            totalItems={total}
+            page={page}
             rowsPerPage={pageSize}
             rowsPerPageOptions={[10, 25, 50, 100, 200, 500]}
-            onPageChange={(_, value) => change({ page: String(value + 1) })}
-            onRowsPerPageChange={(event) => change({ page_size: event.target.value, page: "1" })}
+            onChange={(_, value) => change({ page: String(Math.max(1, value)) })}
+            onRowsPerPageChange={(value) => change({ page_size: String(value), page: "1" })}
           />
         </TableContainer>
         <Dialog open={filtersOpen} onClose={() => setFiltersOpen(false)} fullWidth maxWidth="sm">
