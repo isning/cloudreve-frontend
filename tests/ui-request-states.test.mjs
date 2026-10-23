@@ -22,7 +22,11 @@ function auditFixture() {
     "../../Pages/PageContainer": icon,
     "../../Pages/PageHeader": icon,
     "./AuditArchiveDialog": icon,
-    "./AuditCategorySelect": icon,
+    "./AuditFilterPopover": {
+      __esModule: true,
+      default: "AuditFilterPopover",
+      auditFilterFields: ["user", "file", "ip", "correlation_id"],
+    },
     "../Common/TablePagination": { __esModule: true, default: "TablePagination" },
     "../../Dialogs/DraggableDialog": dialog,
     "@mui/lab": { LoadingButton: "LoadingButton" },
@@ -57,6 +61,32 @@ function auditFixture() {
   };
 }
 const pageA = { logs: [{ id: 11, edges: {}, content: { category: 0 } }], pagination: { total_items: 30 } };
+test("audit filter application and reset preserve sort while returning to page one", () => {
+  const f = auditFixture();
+  f.find((node) => node.type === "AuditFilterPopover").props.onApply(
+    { user: "u1", file: "", ip: "127.0.0.1", correlation_id: "trace" },
+    [1, 2],
+  );
+  f.render();
+  const params = new URLSearchParams(f.query());
+  assert.equal(params.get("user"), "u1");
+  assert.equal(params.get("ip"), "127.0.0.1");
+  assert.equal(params.get("category"), "1,2");
+  assert.equal(params.get("page"), "1");
+  assert.equal(f.find((node) => node.type === "Badge").props.invisible, false);
+  f.find((node) => node.type === "TableSortLabel").props.onClick();
+  f.render();
+  const order = new URLSearchParams(f.query()).get("order_direction");
+  f.find((node) => node.type === "AuditFilterPopover").props.onReset();
+  f.render();
+  const reset = new URLSearchParams(f.query());
+  assert.equal(reset.get("user"), null);
+  assert.equal(reset.get("category"), null);
+  assert.equal(reset.get("order_direction"), order);
+  assert.equal(reset.get("page"), "1");
+  assert.equal(f.find((node) => node.type === "Badge").props.invisible, true);
+  f.unmount();
+});
 test("audit page replacement never leaves old rows selectable or selected", async () => {
   const f = auditFixture();
   f.requests.shift().resolve(pageA);

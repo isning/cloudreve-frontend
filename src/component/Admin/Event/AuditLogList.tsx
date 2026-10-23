@@ -1,6 +1,7 @@
 import React from "react";
 import {
   Alert,
+  Badge,
   Box,
   Button,
   Checkbox,
@@ -45,13 +46,12 @@ import { SecondaryButton, NoWrapTypography, StyledTableContainerPaper } from "..
 import PageContainer from "../../Pages/PageContainer";
 import PageHeader from "../../Pages/PageHeader";
 import AuditArchiveDialog from "./AuditArchiveDialog";
-import AuditCategorySelect from "./AuditCategorySelect";
+import AuditFilterPopover, { auditFilterFields as fields, type AuditFilterValues } from "./AuditFilterPopover";
 import TablePagination from "../Common/TablePagination";
 
 const boundedInt = (value: string | null, fallback: number, max: number) =>
   Math.min(max, Math.max(1, Number.parseInt(value ?? "", 10) || fallback));
 const dateTime = (value?: string) => (value ? new Date(value).toLocaleString() : "—");
-const fields = ["user", "file", "ip", "correlation_id"] as const;
 
 export default function AuditLogList() {
   const { t } = useTranslation("dashboard");
@@ -70,9 +70,7 @@ export default function AuditLogList() {
   const [error, setError] = useState(false);
   const [refresh, setRefresh] = useState(0);
   const [selected, setSelected] = useState<number[]>([]);
-  const [filtersOpen, setFiltersOpen] = useState(false);
-  const [draft, setDraft] = useState<Record<string, string>>({});
-  const [categories, setCategories] = useState<number[]>([]);
+  const [filterAnchor, setFilterAnchor] = useState<HTMLElement | null>(null);
   const [detail, setDetail] = useState<AuditLog>();
   const [exportOpen, setExportOpen] = useState(false);
   const [cleanupOpen, setCleanupOpen] = useState(false);
@@ -83,6 +81,7 @@ export default function AuditLogList() {
     .filter(Boolean)
     .map(Number)
     .filter((n) => Number.isInteger(n) && n >= 0 && n < 62);
+  const hasActiveFilters = fields.some((field) => !!params.get(field)) || currentCategories.length > 0;
   const change = (values: Record<string, string>) => {
     const next = new URLSearchParams(params);
     for (const [key, value] of Object.entries(values)) {
@@ -175,11 +174,6 @@ export default function AuditLogList() {
       setBusy(false);
     }
   };
-  const showFilters = () => {
-    setDraft(Object.fromEntries(fields.map((key) => [key, params.get(key) ?? ""])));
-    setCategories(currentCategories);
-    setFiltersOpen(true);
-  };
   const sort = (field: string) =>
     change({ order_by: field, order_direction: orderBy === field && direction === "desc" ? "asc" : "desc", page: "1" });
   return (
@@ -190,9 +184,18 @@ export default function AuditLogList() {
           <SecondaryButton variant="contained" startIcon={<ArrowSync />} onClick={reload} disabled={loading}>
             {t("node.refresh")}
           </SecondaryButton>
-          <SecondaryButton variant="contained" startIcon={<Filter />} onClick={showFilters}>
-            {t("audit.filters")}
-          </SecondaryButton>
+          <Badge color="primary" variant="dot" invisible={!hasActiveFilters}>
+            <SecondaryButton
+              variant="contained"
+              startIcon={<Filter />}
+              aria-haspopup="dialog"
+              aria-expanded={!!filterAnchor}
+              aria-controls={filterAnchor ? "audit-filter-popover" : undefined}
+              onClick={(event) => setFilterAnchor(event.currentTarget)}
+            >
+              {t("audit.filters")}
+            </SecondaryButton>
+          </Badge>
           <Button variant="contained" startIcon={<Download />} onClick={() => setExportOpen(true)}>
             {t("audit.export")}
           </Button>
@@ -374,42 +377,16 @@ export default function AuditLogList() {
             />
           </Box>
         )}
-        <DraggableDialog
-          title={t("audit.filters")}
-          showActions
-          showCancel
-          okText={t("audit.apply")}
-          dialogProps={{ open: filtersOpen, onClose: () => setFiltersOpen(false), fullWidth: true, maxWidth: "sm" }}
-          onAccept={() => {
-            change({ ...draft, category: categories.join(","), page: "1" });
-            setFiltersOpen(false);
-          }}
-          secondaryAction={
-            <Button
-              onClick={() => {
-                change({ ...Object.fromEntries(fields.map((key) => [key, ""])), category: "", page: "1" });
-                setFiltersOpen(false);
-              }}
-            >
-              {t("audit.reset")}
-            </Button>
-          }
-        >
-          <DialogContent>
-            <Stack spacing={2} sx={{ pt: 1 }}>
-              {fields.map((key) => (
-                <TextField
-                  key={key}
-                  label={t(`audit.${key}`)}
-                  value={draft[key] ?? ""}
-                  onChange={(event) => setDraft((prev) => ({ ...prev, [key]: event.target.value }))}
-                  size="small"
-                />
-              ))}
-              <AuditCategorySelect value={categories} onChange={setCategories} />
-            </Stack>
-          </DialogContent>
-        </DraggableDialog>
+        <AuditFilterPopover
+          id="audit-filter-popover"
+          anchorEl={filterAnchor}
+          open={!!filterAnchor}
+          onClose={() => setFilterAnchor(null)}
+          value={Object.fromEntries(fields.map((field) => [field, params.get(field) ?? ""])) as AuditFilterValues}
+          categories={currentCategories}
+          onApply={(value, categories) => change({ ...value, category: categories.join(","), page: "1" })}
+          onReset={() => change({ ...Object.fromEntries(fields.map((field) => [field, ""])), category: "", page: "1" })}
+        />
         <DraggableDialog
           title={`${t("audit.details")} #${detail?.id ?? ""}`}
           showActions
