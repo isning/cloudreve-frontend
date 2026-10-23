@@ -902,6 +902,7 @@
     "transferring": "Transfer",
     "committingChanges": "Commit changes",
     "autoRefresh": "Auto refresh",
+    "taskListLoadFailed": "Could not load tasks. Try again.",
     "avatarUpdated": "The avatar has been updated and will take effect with a delay.",
     "nickChanged": "Nickname changed and will take effect after refreshing.",
     "settingSaved": "Setting saved.",

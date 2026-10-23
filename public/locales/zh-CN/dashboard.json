@@ -992,6 +992,7 @@
     "weight": "权重",
     "addTargetPolicy": "添加子存储策略",
     "selectPolicies": "选择策略",
+    "loadPoliciesFailed": "无法加载存储策略，请刷新重试。",
     "selectPoliciesDes": "选择要添加到负载均衡的存储策略。",
     "loadBalanceDes": "使用负载均衡存储策略时，新上传的文件会根据权重随机分配到不同的子存储策略中。",
     "xChildPolicies": "{{count}} 个子存储策略",

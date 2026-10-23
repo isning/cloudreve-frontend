@@ -177,6 +177,7 @@ function PermissionDialog({
       title={t("fileManager.permissions")}
       showActions
       showCancel
+      okText={t("fileManager.save")}
       disabled={disabled || loading || failed || !explicit}
       loading={saving}
       onAccept={() => save()}
@@ -198,7 +199,7 @@ function PermissionDialog({
     >
       <DialogContent>
         <Stack spacing={1.5}>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color="text.secondary" sx={{ overflowWrap: "anywhere" }}>
             {batch ? t("sharing.batchReplace", { count: files.length }) : files[0].name}
           </Typography>
           <Typography variant="body2" color="text.secondary">

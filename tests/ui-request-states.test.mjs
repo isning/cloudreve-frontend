@@ -35,7 +35,7 @@ function auditFixture() {
       ],
     },
   };
-  for (const name of ["ArrowSync", "Filter", "Download", "Broom", "Delete", "Info"])
+  for (const name of ["ArrowSync", "Filter", "Download", "Broom", "Delete", "Info", "MoreHorizontal"])
     modules[`../../Icons/${name}`] = icon;
   const f = componentFixture("src/component/Admin/Event/AuditLogList.tsx", {}, modules, { URLSearchParams });
   return {

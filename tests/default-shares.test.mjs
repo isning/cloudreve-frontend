@@ -94,7 +94,7 @@ function fixture(filename, props = {}) {
   const find = (type, node = tree) => {
     if (!node || typeof node !== "object") return;
     if (node.type === type) return node;
-    for (const child of [node.props?.children].flat(Infinity)) {
+    for (const child of [node.props?.children, node.props?.action].flat(Infinity)) {
       if (!child || typeof child !== "object") continue;
       const found = find(type, child);
       if (found) return found;

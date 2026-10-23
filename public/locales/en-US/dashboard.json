@@ -992,6 +992,7 @@
     "weight": "Weight",
     "addTargetPolicy": "Add Child Policy",
     "selectPolicies": "Select Policies",
+    "loadPoliciesFailed": "Could not load storage policies. Refresh to try again.",
     "selectPoliciesDes": "Select storage policies to add to the load balance pool.",
     "loadBalanceDes": "When using the load balanced storage policy, new uploads will be randomly distributed to different child storage policies based on weight.",
     "xChildPolicies": "{{count}} child storage policies",

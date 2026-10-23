@@ -1,7 +1,17 @@
 import * as React from "react";
 import { useCallback, useEffect, useState } from "react";
 import { ListTaskCategory, TaskResponse } from "../../../api/workflow.ts";
-import { Box, Container, FormControlLabel, FormGroup, Switch, Typography } from "@mui/material";
+import {
+  Alert,
+  Box,
+  Button,
+  Container,
+  FormControlLabel,
+  FormGroup,
+  LinearProgress,
+  Switch,
+  Typography,
+} from "@mui/material";
 import { useTranslation } from "react-i18next";
 import PageHeader from "../PageHeader.tsx";
 import { getAvailableStoragePolicies, getTasks } from "../../../api/api.ts";
@@ -27,13 +37,20 @@ const TaskList = () => {
     setDestinations({ owner });
     if (!owner) return;
     dispatch(getAvailableStoragePolicies())
-      .then((policies) => { if (active && SessionManager.currentLoginOrNull()?.user.id === owner) setDestinations({ owner, policies }); })
-      .catch(() => { if (active) setDestinations({ owner, policies: [] }); });
-    return () => { active = false; };
+      .then((policies) => {
+        if (active && SessionManager.currentLoginOrNull()?.user.id === owner) setDestinations({ owner, policies });
+      })
+      .catch(() => {
+        if (active) setDestinations({ owner, policies: [] });
+      });
+    return () => {
+      active = false;
+    };
   }, [owner, dispatch]);
   const [nextPageToken, setNextPageToken] = useState<string | undefined>("");
   const [tasks, setTasks] = useState<TaskResponse[]>([]);
   const [loading, setLoading] = useState(false);
+  const [failedRequest, setFailedRequest] = useState<{ tasks: TaskResponse[]; token?: string }>();
   const [autoRefresh, setAutoRefresh] = useState(true);
   const interval = React.useRef<NodeJS.Timeout>();
 
@@ -58,6 +75,7 @@ const TaskList = () => {
   const loadNextPage = useCallback(
     (originTasks: TaskResponse[], token?: string) => () => {
       setLoading(true);
+      setFailedRequest(undefined);
       dispatch(
         getTasks({
           page_size: defaultPageSize,
@@ -77,7 +95,7 @@ const TaskList = () => {
           }
         })
         .catch(() => {
-          setNextPageToken(undefined);
+          setFailedRequest({ tasks: originTasks, token });
         })
         .finally(() => {
           setLoading(false);
@@ -118,14 +136,28 @@ const TaskList = () => {
           loading={loading}
           title={t("application:navbar.taskQueue")}
         />
+        {failedRequest && (
+          <Alert
+            severity="error"
+            sx={{ mb: 2 }}
+            action={
+              <Button size="small" color="inherit" onClick={loadNextPage(failedRequest.tasks, failedRequest.token)}>
+                {t("uploader.retry")}
+              </Button>
+            }
+          >
+            {t("setting.taskListLoadFailed")}
+          </Alert>
+        )}
+        {loading && <LinearProgress sx={{ mb: 2 }} />}
         {tasks.map((task) => (
           <TaskCard key={task.id} task={task} relocationPolicies={relocationPolicies} />
         ))}
-        {nextPageToken != undefined && (
+        {!loading && !failedRequest && nextPageToken != undefined && (
           <TaskCard onLoad={loadNextPage(tasks, nextPageToken)} loading={true} key={nextPageToken} />
         )}
 
-        {nextPageToken == undefined && tasks.length == 0 && (
+        {!loading && !failedRequest && nextPageToken == undefined && tasks.length == 0 && (
           <Box sx={{ p: 1, width: "100%", textAlign: "center" }}>
             <Nothing size={0.8} top={63} primary={t("setting.listEmpty")} />
           </Box>

@@ -902,6 +902,7 @@
     "transferring": "转存",
     "committingChanges": "提交更改",
     "autoRefresh": "自动刷新",
+    "taskListLoadFailed": "无法加载任务，请重试。",
     "avatarUpdated": "头像已更新，最新头像展示可能有延迟",
     "nickChanged": "昵称已更改，刷新后生效",
     "settingSaved": "设置已保存",

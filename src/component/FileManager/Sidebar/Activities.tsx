@@ -20,6 +20,9 @@ import { useAppDispatch } from "../../../redux/hooks";
 import { getEventName } from "../../../util/audit";
 import { hasPermission } from "../../../util/permission";
 import CrUri from "../../../util/uri";
+import { SecondaryButton } from "../../Common/StyledComponents";
+import ArrowSort from "../../Icons/ArrowSort";
+import ArrowSync from "../../Icons/ArrowSync";
 
 const locationLabel = (value: string) => {
   try {
@@ -94,7 +97,7 @@ export default function Activities({ target }: { target: FileResponse }) {
   };
   return (
     <Stack spacing={2}>
-      <Stack direction="row" spacing={1}>
+      <Stack spacing={1}>
         <TextField
           select
           fullWidth
@@ -111,18 +114,41 @@ export default function Activities({ target }: { target: FileResponse }) {
             </MenuItem>
           ))}
         </TextField>
-        <Button
-          size="small"
-          onClick={() => setDirection((prev) => (prev === "desc" ? "asc" : "desc"))}
-          aria-label={t("audit.order")}
-        >
-          {t(direction === "desc" ? "audit.newest" : "audit.oldest")}
-        </Button>
+        <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+          <SecondaryButton
+            variant="contained"
+            size="small"
+            startIcon={<ArrowSort />}
+            onClick={() => setDirection((prev) => (prev === "desc" ? "asc" : "desc"))}
+            aria-label={t("audit.order")}
+          >
+            {t(direction === "desc" ? "audit.newest" : "audit.oldest")}
+          </SecondaryButton>
+          <SecondaryButton
+            variant="contained"
+            size="small"
+            startIcon={<ArrowSync />}
+            onClick={() => setRevision((prev) => prev + 1)}
+            disabled={loading}
+          >
+            {t("fileManager.refresh")}
+          </SecondaryButton>
+        </Stack>
       </Stack>
-      <Button size="small" onClick={() => setRevision((prev) => prev + 1)} disabled={loading}>
-        {t("fileManager.refresh")}
-      </Button>
-      {failed && <Alert severity="error">{t("audit.loadFailed")}</Alert>}
+      {failed && (
+        <Alert
+          severity="error"
+          action={
+            !next && (
+              <Button size="small" color="inherit" onClick={() => setRevision((prev) => prev + 1)}>
+                {t("audit.retry")}
+              </Button>
+            )
+          }
+        >
+          {t("audit.loadFailed")}
+        </Alert>
+      )}
       {activities.map((activity) => (
         <Box key={activity.id}>
           <Stack direction="row" spacing={1} alignItems="start">

@@ -10,6 +10,9 @@ import {
   IconButton,
   Tooltip,
   LinearProgress,
+  ListItemIcon,
+  Menu,
+  MenuItem,
   Stack,
   Table,
   TableBody,
@@ -37,6 +40,7 @@ import Download from "../../Icons/Download";
 import Broom from "../../Icons/Broom";
 import Delete from "../../Icons/Delete";
 import Info from "../../Icons/Info";
+import MoreHorizontal from "../../Icons/MoreHorizontal";
 import { SecondaryButton, NoWrapTypography, StyledTableContainerPaper } from "../../Common/StyledComponents";
 import PageContainer from "../../Pages/PageContainer";
 import PageHeader from "../../Pages/PageHeader";
@@ -72,6 +76,7 @@ export default function AuditLogList() {
   const [detail, setDetail] = useState<AuditLog>();
   const [exportOpen, setExportOpen] = useState(false);
   const [cleanupOpen, setCleanupOpen] = useState(false);
+  const [moreAnchor, setMoreAnchor] = useState<HTMLElement | null>(null);
   const [cutoff, setCutoff] = useState("");
   const currentCategories = (params.get("category") ?? "")
     .split(",")
@@ -188,17 +193,34 @@ export default function AuditLogList() {
           <SecondaryButton variant="contained" startIcon={<Filter />} onClick={showFilters}>
             {t("audit.filters")}
           </SecondaryButton>
-          <SecondaryButton variant="contained" startIcon={<Download />} onClick={() => setExportOpen(true)}>
+          <Button variant="contained" startIcon={<Download />} onClick={() => setExportOpen(true)}>
             {t("audit.export")}
-          </SecondaryButton>
+          </Button>
           <SecondaryButton
             variant="contained"
-            startIcon={<Broom />}
+            startIcon={<MoreHorizontal />}
             disabled={busy}
-            onClick={() => setCleanupOpen(true)}
+            aria-haspopup="menu"
+            aria-controls={moreAnchor ? "audit-more-menu" : undefined}
+            aria-expanded={moreAnchor ? true : undefined}
+            onClick={(event) => setMoreAnchor(event.currentTarget)}
           >
-            {t("audit.cleanup")}
+            {t("application:fileManager.moreActions")}
           </SecondaryButton>
+          <Menu id="audit-more-menu" anchorEl={moreAnchor} open={!!moreAnchor} onClose={() => setMoreAnchor(null)}>
+            <MenuItem
+              disabled={busy}
+              onClick={() => {
+                setMoreAnchor(null);
+                setCleanupOpen(true);
+              }}
+            >
+              <ListItemIcon>
+                <Broom fontSize="small" />
+              </ListItemIcon>
+              {t("audit.cleanup")}
+            </MenuItem>
+          </Menu>
           {rowsCurrent && selected.length > 0 && (
             <LoadingButton variant="contained" startIcon={<Delete />} color="error" loading={busy} onClick={remove}>
               <span>{t("audit.deleteSelected", { count: selected.length })}</span>

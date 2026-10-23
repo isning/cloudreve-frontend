@@ -130,10 +130,16 @@ const SharesInput = ({ value = [], onChange }: SharesInputProps): React.ReactEle
         )}
       />
       {(selectedFailed || searchFailed) && (
-        <>
-          <Alert severity="warning">{t("settings.defaultSharesLoadError")}</Alert>
-          <Button onClick={() => setRetryVersion((current) => current + 1)}>{t("settings.retryDefaultShares")}</Button>
-        </>
+        <Alert
+          severity="warning"
+          action={
+            <Button size="small" color="inherit" onClick={() => setRetryVersion((current) => current + 1)}>
+              {t("settings.retryDefaultShares")}
+            </Button>
+          }
+        >
+          {t("settings.defaultSharesLoadError")}
+        </Alert>
       )}
     </>
   );

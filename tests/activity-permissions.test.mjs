@@ -25,6 +25,9 @@ test("activity remains visible without offering version content to list+update c
     "../../../util/audit": { getEventName: () => "event" },
     "../../../util/permission": permissions,
     "../../../util/uri": {},
+    "../../Common/StyledComponents": { SecondaryButton: "SecondaryButton" },
+    "../../Icons/ArrowSort": { __esModule: true, default: "Icon" },
+    "../../Icons/ArrowSync": { __esModule: true, default: "Icon" },
   }, { AbortController });
   await new Promise(setImmediate);
   const versionButtons = () => f.findAll((node) => node.type === "Button" && node.props.children === "audit.openVersion");

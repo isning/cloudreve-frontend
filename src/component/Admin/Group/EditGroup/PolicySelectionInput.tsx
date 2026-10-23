@@ -1,5 +1,5 @@
 import { ArrowDownward, ArrowUpward } from "@mui/icons-material";
-import { Box, FormControl, IconButton, SelectChangeEvent, Typography } from "@mui/material";
+import { Alert, Box, Button, FormControl, IconButton, SelectChangeEvent, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getStoragePolicyList } from "../../../../api/api";
@@ -18,6 +18,8 @@ const PolicySelectionInput = ({ value, onChange }: PolicySelectionInputProps) =>
   const dispatch = useAppDispatch();
   const [policies, setPolicies] = useState<StoragePolicy[]>([]);
   const [loading, setLoading] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const [revision, setRevision] = useState(0);
   const [policyMap, setPolicyMap] = useState<Record<number, StoragePolicy>>({});
 
   const handleChange = (event: SelectChangeEvent<unknown>) => {
@@ -34,9 +36,12 @@ const PolicySelectionInput = ({ value, onChange }: PolicySelectionInputProps) =>
   };
 
   useEffect(() => {
+    let active = true;
     setLoading(true);
+    setFailed(false);
     dispatch(getStoragePolicyList({ page: 1, page_size: 1000, order_by: "id", order_direction: "asc" }))
       .then((res) => {
+        if (!active) return;
         setPolicies(res.policies);
         setPolicyMap(
           res.policies.reduce(
@@ -48,13 +53,32 @@ const PolicySelectionInput = ({ value, onChange }: PolicySelectionInputProps) =>
           ),
         );
       })
+      .catch(() => {
+        if (active) setFailed(true);
+      })
       .finally(() => {
-        setLoading(false);
+        if (active) setLoading(false);
       });
-  }, []);
+    return () => {
+      active = false;
+    };
+  }, [dispatch, revision]);
 
   return (
     <FormControl fullWidth>
+      {failed && (
+        <Alert
+          severity="error"
+          sx={{ mb: 1 }}
+          action={
+            <Button size="small" color="inherit" onClick={() => setRevision((value) => value + 1)}>
+              {t("policy.refresh")}
+            </Button>
+          }
+        >
+          {t("policy.loadPoliciesFailed")}
+        </Alert>
+      )}
       <DenseSelect
         value={value}
         multiple
@@ -64,7 +88,7 @@ const PolicySelectionInput = ({ value, onChange }: PolicySelectionInputProps) =>
         sx={{
           minHeight: 39,
         }}
-        disabled={loading}
+        disabled={loading || failed}
         MenuProps={{
           PaperProps: { sx: { maxWidth: 230 } },
           MenuListProps: {
@@ -82,6 +106,7 @@ const PolicySelectionInput = ({ value, onChange }: PolicySelectionInputProps) =>
                 <SquareChip
                   size="small"
                   key={id}
+                  sx={{ maxWidth: "100%" }}
                   label={`${policyMap[id]?.name ?? `#${id}`}${index === 0 ? ` · ${t("group.defaultPolicy")}` : ""}`}
                 />
               ))
@@ -122,7 +147,7 @@ const PolicySelectionInput = ({ value, onChange }: PolicySelectionInputProps) =>
                 </Typography>
                 <IconButton
                   size="small"
-                  disabled={loading || index === 0}
+                  disabled={loading || failed || index === 0}
                   aria-label={t("group.movePolicyUp", { name })}
                   onClick={() => movePolicy(index, -1)}
                 >
@@ -130,7 +155,7 @@ const PolicySelectionInput = ({ value, onChange }: PolicySelectionInputProps) =>
                 </IconButton>
                 <IconButton
                   size="small"
-                  disabled={loading || index === value.length - 1}
+                  disabled={loading || failed || index === value.length - 1}
                   aria-label={t("group.movePolicyDown", { name })}
                   onClick={() => movePolicy(index, 1)}
                 >
