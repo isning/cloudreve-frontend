@@ -70,7 +70,9 @@ function fixture(filename, props = {}) {
       if (name.endsWith("hooks.ts")) return { useAppDispatch: () => dispatch };
       if (name.endsWith("session"))
         return { __esModule: true, default: { currentLoginOrNull: () => ({ user: { id: actor } }) } };
-      if (name.includes("StyledComponents")) return { DenseFilledTextField: "TextField" };
+      if (name.includes("StyledComponents"))
+        return { DenseFilledTextField: "TextField", SecondaryLoadingButton: "LoadingButton" };
+      if (name.includes("Icons/")) return { __esModule: true, default: "Icon" };
       if (name.includes("SettingForm")) return { __esModule: true, default: "SettingForm" };
       throw Error(name);
     },

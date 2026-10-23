@@ -1,14 +1,17 @@
+import { ExpandMoreRounded } from "@mui/icons-material";
+import { AccordionSummary, StyledAccordion } from "../../Common/SettingsAccordion.tsx";
+import { DenseFilledTextField, SecondaryLoadingButton } from "../../../Common/StyledComponents.tsx";
+import ArrowSync from "../../../Icons/ArrowSync.tsx";
 import GroupSelectionInput from "../../Common/GroupSelectionInput.tsx";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Alert,
   Box,
-  Button,
   Checkbox,
   CircularProgress,
   FormControlLabel,
   Stack,
-  TextField,
+  AccordionDetails,
   Typography,
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
@@ -62,7 +65,7 @@ export default function OpenIDProviderEditor({
   }, [dispatch, provider.id]);
   const set = (key: string, value: unknown) => onChange({ ...provider, config: { ...provider.config, [key]: value } });
   const field = (key: string, secret = false, required = false) => (
-    <TextField
+    <DenseFilledTextField
       key={key}
       size="small"
       fullWidth
@@ -117,16 +120,23 @@ export default function OpenIDProviderEditor({
           {field("client_id", false, true)}
           {field("client_secret", true, true)}
           <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
-            <TextField
+            <DenseFilledTextField
               size="small"
               fullWidth
               label={t("openid.discoveryURL")}
               value={endpoint}
               onChange={(e) => setEndpoint(e.target.value)}
             />
-            <Button type="button" disabled={loading} onClick={discover}>
-              {t("openid.discover")}
-            </Button>
+            <SecondaryLoadingButton
+              type="button"
+              variant="contained"
+              loading={loading}
+              onClick={discover}
+              startIcon={<ArrowSync />}
+              sx={{ flexShrink: 0 }}
+            >
+              <span>{t("openid.discover")}</span>
+            </SecondaryLoadingButton>
           </Stack>
           {error && <Alert severity="error">{error}</Alert>}
           <JSONField
@@ -151,37 +161,45 @@ export default function OpenIDProviderEditor({
         }
         label={t("openid.autoCreate")}
       />
-      <Box component="details">
-        <Box component="summary" sx={{ cursor: "pointer", mb: 2 }}>
-          {t("openid.claimMappings")}
-        </Box>
-        <Stack spacing={2}>
-          {[
-            "sub_field_mapping",
-            "email_field_mapping",
-            "name_field_mapping",
-            "avatar_field_mapping",
-            "group_field_mapping",
-          ].map((key) => field(key))}
-          {Object.entries((provider.config.group_mapping ?? {}) as Record<string, number>).map(([value, group]) => (
-            <Stack key={value} direction="row" spacing={1} alignItems="center">
-              <Typography sx={{ minWidth: 100 }}>{value}</Typography>
-              <GroupSelectionInput
-                value={String(group)}
-                onChange={(id) =>
-                  set("group_mapping", { ...(provider.config.group_mapping as object), [value]: Number(id) })
-                }
-              />
-            </Stack>
-          ))}
-          <JSONField
-            label={t("openid.groupMapping")}
-            value={(provider.config.group_mapping ?? {}) as Record<string, unknown>}
-            resetVersion={resetVersion}
-            onChange={(value) => set("group_mapping", value)}
-          />
-        </Stack>
-      </Box>
+      <StyledAccordion disableGutters>
+        <AccordionSummary expandIcon={<ExpandMoreRounded />}>{t("openid.claimMappings")}</AccordionSummary>
+        <AccordionDetails>
+          <Stack spacing={2}>
+            {[
+              "sub_field_mapping",
+              "email_field_mapping",
+              "name_field_mapping",
+              "avatar_field_mapping",
+              "group_field_mapping",
+            ].map((key) => field(key))}
+            {Object.entries((provider.config.group_mapping ?? {}) as Record<string, number>).map(([value, group]) => (
+              <Stack
+                key={value}
+                direction={{ xs: "column", sm: "row" }}
+                spacing={1}
+                alignItems={{ xs: "stretch", sm: "center" }}
+              >
+                <Typography variant="body2" sx={{ minWidth: 0, overflowWrap: "anywhere" }}>
+                  {value}
+                </Typography>
+                <GroupSelectionInput
+                  fullWidth
+                  value={String(group)}
+                  onChange={(id) =>
+                    set("group_mapping", { ...(provider.config.group_mapping as object), [value]: Number(id) })
+                  }
+                />
+              </Stack>
+            ))}
+            <JSONField
+              label={t("openid.groupMapping")}
+              value={(provider.config.group_mapping ?? {}) as Record<string, unknown>}
+              resetVersion={resetVersion}
+              onChange={(value) => set("group_mapping", value)}
+            />
+          </Stack>
+        </AccordionDetails>
+      </StyledAccordion>
     </Stack>
   );
 }
@@ -205,7 +223,7 @@ function JSONField({
     input.current?.setCustomValidity("");
   }, [serialized, resetVersion]);
   return (
-    <TextField
+    <DenseFilledTextField
       fullWidth
       multiline
       minRows={3}

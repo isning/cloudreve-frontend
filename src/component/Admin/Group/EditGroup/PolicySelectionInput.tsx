@@ -116,7 +116,7 @@ const PolicySelectionInput = ({ value, onChange }: PolicySelectionInputProps) =>
             const name = policyMap[id]?.name ?? `#${id}`;
             return (
               <Box key={id} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <Typography variant="body2" sx={{ flex: 1 }}>
+                <Typography variant="body2" sx={{ flex: 1, minWidth: 0, overflowWrap: "anywhere" }}>
                   {name}
                   {index === 0 ? ` · ${t("group.defaultPolicy")}` : ""}
                 </Typography>

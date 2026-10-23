@@ -1,16 +1,7 @@
 import React from "react";
-import {
-  Alert,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  LinearProgress,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Alert, DialogContent, LinearProgress, Stack, TextField, Typography } from "@mui/material";
+import { LoadingButton } from "@mui/lab";
+import DraggableDialog from "../../Dialogs/DraggableDialog";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AuditArchive, createAuditArchive, getAuditArchiveStatus, purgeAuditArchive } from "../../../api/audit";
@@ -116,8 +107,25 @@ export default function AuditArchiveDialog({
     Number.isFinite(Date.parse(after)) &&
     Date.parse(before) <= Date.parse(after);
   return (
-    <Dialog open={open} onClose={busy ? undefined : onClose} fullWidth maxWidth="sm">
-      <DialogTitle>{t("audit.export")}</DialogTitle>
+    <DraggableDialog
+      title={t("audit.export")}
+      showActions
+      showCancel
+      hideOk={!!archive}
+      cancelText={t("audit.close")}
+      okText={t("audit.download")}
+      loading={busy}
+      disabled={!valid}
+      onAccept={start}
+      dialogProps={{ open, onClose, fullWidth: true, maxWidth: "sm" }}
+      secondaryAction={
+        status === "completed" && (
+          <LoadingButton variant="contained" color="error" loading={busy} onClick={purge}>
+            <span>{t("audit.purgeExported")}</span>
+          </LoadingButton>
+        )
+      }
+    >
       <DialogContent>
         <Stack spacing={2} sx={{ pt: 1 }}>
           <Typography variant="body2" color="text.secondary">
@@ -155,21 +163,6 @@ export default function AuditArchiveDialog({
           {archive && <iframe title={t("audit.export")} src={archive.url} hidden />}
         </Stack>
       </DialogContent>
-      <DialogActions>
-        <Button disabled={busy} onClick={onClose}>
-          {t("audit.close")}
-        </Button>
-        {!archive && (
-          <Button variant="contained" disabled={busy || !valid} onClick={start}>
-            {t("audit.download")}
-          </Button>
-        )}
-        {status === "completed" && (
-          <Button color="error" disabled={busy} onClick={purge}>
-            {t("audit.purgeExported")}
-          </Button>
-        )}
-      </DialogActions>
-    </Dialog>
+    </DraggableDialog>
   );
 }

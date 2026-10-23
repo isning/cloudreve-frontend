@@ -128,7 +128,7 @@ export default function Activities({ target }: { target: FileResponse }) {
           <Stack direction="row" spacing={1} alignItems="start">
             <Avatar sx={{ width: 28, height: 28, fontSize: 14 }}>{activity.user?.nickname?.slice(0, 1) ?? "?"}</Avatar>
             <Stack spacing={0.5} sx={{ minWidth: 0, flex: 1 }}>
-              <Typography variant="body2" fontWeight={500}>
+              <Typography variant="body2" fontWeight={500} sx={{ overflowWrap: "anywhere" }}>
                 {activity.user?.nickname ?? t("audit.anonymous")}
               </Typography>
               <Typography variant="body2">
@@ -151,7 +151,7 @@ export default function Activities({ target }: { target: FileResponse }) {
                   ),
               )}
               {activity.content.storage_policy && (
-                <Typography variant="caption" color="text.secondary">
+                <Typography variant="caption" color="text.secondary" sx={{ overflowWrap: "anywhere" }}>
                   {activity.content.storage_policy}
                 </Typography>
               )}

@@ -711,7 +711,8 @@
     "automaticPolicyDestination": "当前目录的自动目的地：{{name}}",
     "noAvailablePolicies": "没有可用存储策略",
     "chooseFiles": "选择文件",
-    "retryPolicies": "重试加载存储位置"
+    "retryPolicies": "重试加载存储位置",
+    "policyLoadFailed": "无法加载存储目标，请重试。"
   },
   "share": {
     "statistics": "统计",
@@ -1020,7 +1021,12 @@
     "validDurationDays": "{{num}} 天",
     "reportTarget": "举报对象",
     "reportReason": "原因",
-    "reportReasonOptions": ["侵权", "有害内容", "垃圾信息", "其他"],
+    "reportReasonOptions": [
+      "侵权",
+      "有害内容",
+      "垃圾信息",
+      "其他"
+    ],
     "reportDescription": "补充说明",
     "reportAbuseSuccess": "举报已提交"
   },

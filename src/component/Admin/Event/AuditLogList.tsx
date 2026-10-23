@@ -6,10 +6,9 @@ import {
   Checkbox,
   Chip,
   Container,
-  Dialog,
-  DialogActions,
   DialogContent,
-  DialogTitle,
+  IconButton,
+  Tooltip,
   LinearProgress,
   Stack,
   Table,
@@ -22,7 +21,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import { cleanupAuditLogs, deleteAuditLogs, getAuditLog, getAuditLogs } from "../../../api/audit";
@@ -30,7 +29,15 @@ import { AuditLog } from "../../../api/dashboard";
 import { useAppDispatch } from "../../../redux/hooks";
 import { confirmOperation } from "../../../redux/thunks/dialog";
 import { getEventName } from "../../../util/audit";
-import { StyledTableContainerPaper } from "../../Common/StyledComponents";
+import { LoadingButton } from "@mui/lab";
+import DraggableDialog, { StyledDialogActions } from "../../Dialogs/DraggableDialog";
+import ArrowSync from "../../Icons/ArrowSync";
+import Filter from "../../Icons/Filter";
+import Download from "../../Icons/Download";
+import Broom from "../../Icons/Broom";
+import Delete from "../../Icons/Delete";
+import Info from "../../Icons/Info";
+import { SecondaryButton, NoWrapTypography, StyledTableContainerPaper } from "../../Common/StyledComponents";
 import PageContainer from "../../Pages/PageContainer";
 import PageHeader from "../../Pages/PageHeader";
 import AuditArchiveDialog from "./AuditArchiveDialog";
@@ -54,6 +61,7 @@ export default function AuditLogList() {
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [acceptedQuery, setAcceptedQuery] = useState<string>();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
   const [refresh, setRefresh] = useState(0);
@@ -79,6 +87,16 @@ export default function AuditLogList() {
     setParams(next);
   };
   const reload = () => setRefresh((value) => value + 1);
+  const rowsCurrent = acceptedQuery === query && !loading && !error;
+  const mounted = useRef(true);
+  const currentView = useRef({ query, refresh, rowsCurrent, selected });
+  currentView.current = { query, refresh, rowsCurrent, selected };
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
   useEffect(() => {
     let active = true;
     const search = new URLSearchParams(query);
@@ -87,11 +105,15 @@ export default function AuditLogList() {
     setLoading(true);
     setError(false);
     setSelected([]);
+    setLogs([]);
+    setTotal(0);
     dispatch(getAuditLogs({ page, page_size: pageSize, order_by: orderBy, order_direction: direction, conditions }))
       .then((result) => {
         if (active) {
           setLogs(result.logs);
           setTotal(result.pagination.total_items ?? 0);
+          setSelected([]);
+          setAcceptedQuery(query);
         }
       })
       .catch(() => {
@@ -105,11 +127,21 @@ export default function AuditLogList() {
     };
   }, [dispatch, query, page, pageSize, orderBy, direction, refresh]);
   const remove = async () => {
+    if (!rowsCurrent || busy || selected.length === 0) return;
     try {
       await dispatch(confirmOperation(t("audit.confirmDelete", { count: selected.length })));
     } catch {
       return;
     }
+    const view = currentView.current;
+    if (
+      !mounted.current ||
+      !view.rowsCurrent ||
+      view.query !== query ||
+      view.refresh !== refresh ||
+      view.selected !== selected
+    )
+      return;
     setBusy(true);
     try {
       await dispatch(deleteAuditLogs(selected));
@@ -148,20 +180,30 @@ export default function AuditLogList() {
   return (
     <PageContainer>
       <Container maxWidth="xl">
-        <PageHeader title={t("nav.events")} onRefresh={reload} loading={loading} />
+        <PageHeader title={t("nav.events")} />
         <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mb: 2 }}>
-          <Button variant="outlined" onClick={showFilters}>
+          <SecondaryButton variant="contained" startIcon={<ArrowSync />} onClick={reload} disabled={loading}>
+            {t("node.refresh")}
+          </SecondaryButton>
+          <SecondaryButton variant="contained" startIcon={<Filter />} onClick={showFilters}>
             {t("audit.filters")}
-          </Button>
-          <Button variant="outlined" onClick={() => setExportOpen(true)}>
+          </SecondaryButton>
+          <SecondaryButton variant="contained" startIcon={<Download />} onClick={() => setExportOpen(true)}>
             {t("audit.export")}
-          </Button>
-          <Button color="error" disabled={busy} onClick={() => setCleanupOpen(true)}>
+          </SecondaryButton>
+          <SecondaryButton
+            variant="contained"
+            startIcon={<Broom />}
+            disabled={busy}
+            onClick={() => setCleanupOpen(true)}
+          >
             {t("audit.cleanup")}
-          </Button>
-          <Button color="error" disabled={busy || selected.length === 0} onClick={remove}>
-            {t("audit.deleteSelected", { count: selected.length })}
-          </Button>
+          </SecondaryButton>
+          {rowsCurrent && selected.length > 0 && (
+            <LoadingButton variant="contained" startIcon={<Delete />} color="error" loading={busy} onClick={remove}>
+              <span>{t("audit.deleteSelected", { count: selected.length })}</span>
+            </LoadingButton>
+          )}
           {fields
             .filter((key) => params.get(key))
             .map((key) => (
@@ -179,33 +221,47 @@ export default function AuditLogList() {
           )}
         </Stack>
         {error && (
-          <Alert severity="error" action={<Button onClick={reload}>{t("audit.retry")}</Button>}>
+          <Alert
+            severity="error"
+            action={
+              <Button size="small" color="inherit" onClick={reload}>
+                {t("audit.retry")}
+              </Button>
+            }
+          >
             {t("audit.loadFailed")}
           </Alert>
         )}
         <TableContainer component={StyledTableContainerPaper}>
           {loading && <LinearProgress />}
-          <Table size="small" aria-label={t("nav.events")}>
+          <Table
+            size="small"
+            stickyHeader
+            sx={{ minWidth: 1120, tableLayout: "fixed", width: "100%" }}
+            aria-label={t("nav.events")}
+          >
             <TableHead>
               <TableRow>
-                <TableCell padding="checkbox">
+                <TableCell padding="checkbox" sx={{ width: 36 }}>
                   <Checkbox
+                    size="small"
+                    disabled={!rowsCurrent || busy}
                     inputProps={{ "aria-label": t("audit.selectAll") }}
                     checked={logs.length > 0 && selected.length === logs.length}
                     indeterminate={selected.length > 0 && selected.length < logs.length}
                     onChange={(_, checked) => setSelected(checked ? logs.map((row) => row.id) : [])}
                   />
                 </TableCell>
-                <TableCell>
+                <TableCell sx={{ width: 80 }}>
                   <TableSortLabel active={orderBy === "id"} direction={direction} onClick={() => sort("id")}>
                     ID
                   </TableSortLabel>
                 </TableCell>
-                <TableCell>{t("audit.event")}</TableCell>
-                <TableCell>{t("audit.user")}</TableCell>
-                <TableCell>{t("audit.file")}</TableCell>
-                <TableCell>IP</TableCell>
-                <TableCell>
+                <TableCell sx={{ width: 240 }}>{t("audit.event")}</TableCell>
+                <TableCell sx={{ width: 160 }}>{t("audit.user")}</TableCell>
+                <TableCell sx={{ width: 180 }}>{t("audit.file")}</TableCell>
+                <TableCell sx={{ width: 140 }}>IP</TableCell>
+                <TableCell sx={{ width: 200 }}>
                   <TableSortLabel
                     active={orderBy === "created_at"}
                     direction={direction}
@@ -214,14 +270,16 @@ export default function AuditLogList() {
                     {t("audit.time")}
                   </TableSortLabel>
                 </TableCell>
-                <TableCell />
+                <TableCell sx={{ width: 60 }} />
               </TableRow>
             </TableHead>
             <TableBody>
-              {logs.map((row) => (
+              {(rowsCurrent ? logs : []).map((row) => (
                 <TableRow key={row.id} hover selected={selected.includes(row.id)}>
                   <TableCell padding="checkbox">
                     <Checkbox
+                      size="small"
+                      disabled={!rowsCurrent || busy}
                       inputProps={{ "aria-label": t("audit.selectEvent", { id: row.id }) }}
                       checked={selected.includes(row.id)}
                       onChange={(_, checked) =>
@@ -232,31 +290,45 @@ export default function AuditLogList() {
                   <TableCell>{row.id}</TableCell>
                   <TableCell>
                     <Stack direction="row" spacing={1} alignItems="center">
-                      <span>{t(`settings.event.${getEventName(row.type ?? row.content?.category ?? 0)}`)}</span>
+                      <NoWrapTypography
+                        variant="inherit"
+                        title={t(`settings.event.${getEventName(row.type ?? row.content?.category ?? 0)}`)}
+                      >
+                        {t(`settings.event.${getEventName(row.type ?? row.content?.category ?? 0)}`)}
+                      </NoWrapTypography>
                       {row.content?.failed && <Chip color="error" size="small" label={t("audit.failed")} />}
                     </Stack>
                   </TableCell>
                   <TableCell>
-                    {row.edges.user?.nick ?? (row.content?.is_system ? t("audit.system") : t("audit.anonymous"))}
+                    <NoWrapTypography variant="inherit" title={row.edges.user?.nick}>
+                      {row.edges.user?.nick ?? (row.content?.is_system ? t("audit.system") : t("audit.anonymous"))}
+                    </NoWrapTypography>
                   </TableCell>
-                  <TableCell>{row.edges.file?.name ?? row.content?.name ?? "—"}</TableCell>
+                  <TableCell>
+                    <NoWrapTypography variant="inherit" title={row.edges.file?.name ?? row.content?.name}>
+                      {row.edges.file?.name ?? row.content?.name ?? "—"}
+                    </NoWrapTypography>
+                  </TableCell>
                   <TableCell>{row.ip || "—"}</TableCell>
                   <TableCell sx={{ whiteSpace: "nowrap" }}>{dateTime(row.created_at)}</TableCell>
                   <TableCell>
-                    <Button
-                      size="small"
-                      onClick={() => {
-                        dispatch(getAuditLog(row.id))
-                          .then(setDetail)
-                          .catch(() => {});
-                      }}
-                    >
-                      {t("audit.details")}
-                    </Button>
+                    <Tooltip title={t("audit.details")}>
+                      <IconButton
+                        size="small"
+                        aria-label={t("audit.details")}
+                        onClick={() => {
+                          dispatch(getAuditLog(row.id))
+                            .then(setDetail)
+                            .catch(() => {});
+                        }}
+                      >
+                        <Info fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
                   </TableCell>
                 </TableRow>
               ))}
-              {!loading && logs.length === 0 && (
+              {rowsCurrent && logs.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={8}>
                     <Typography sx={{ py: 4 }} color="text.secondary" align="center">
@@ -267,17 +339,40 @@ export default function AuditLogList() {
               )}
             </TableBody>
           </Table>
-          <TablePagination
-            totalItems={total}
-            page={page}
-            rowsPerPage={pageSize}
-            rowsPerPageOptions={[10, 25, 50, 100, 200, 500]}
-            onChange={(_, value) => change({ page: String(Math.max(1, value)) })}
-            onRowsPerPageChange={(value) => change({ page_size: String(value), page: "1" })}
-          />
         </TableContainer>
-        <Dialog open={filtersOpen} onClose={() => setFiltersOpen(false)} fullWidth maxWidth="sm">
-          <DialogTitle>{t("audit.filters")}</DialogTitle>
+        {rowsCurrent && total > 0 && (
+          <Box sx={{ mt: 1 }}>
+            <TablePagination
+              totalItems={total}
+              page={page}
+              rowsPerPage={pageSize}
+              rowsPerPageOptions={[10, 25, 50, 100, 200, 500]}
+              onChange={(_, value) => change({ page: String(Math.max(1, value)) })}
+              onRowsPerPageChange={(value) => change({ page_size: String(value), page: "1" })}
+            />
+          </Box>
+        )}
+        <DraggableDialog
+          title={t("audit.filters")}
+          showActions
+          showCancel
+          okText={t("audit.apply")}
+          dialogProps={{ open: filtersOpen, onClose: () => setFiltersOpen(false), fullWidth: true, maxWidth: "sm" }}
+          onAccept={() => {
+            change({ ...draft, category: categories.join(","), page: "1" });
+            setFiltersOpen(false);
+          }}
+          secondaryAction={
+            <Button
+              onClick={() => {
+                change({ ...Object.fromEntries(fields.map((key) => [key, ""])), category: "", page: "1" });
+                setFiltersOpen(false);
+              }}
+            >
+              {t("audit.reset")}
+            </Button>
+          }
+        >
           <DialogContent>
             <Stack spacing={2} sx={{ pt: 1 }}>
               {fields.map((key) => (
@@ -292,30 +387,15 @@ export default function AuditLogList() {
               <AuditCategorySelect value={categories} onChange={setCategories} />
             </Stack>
           </DialogContent>
-          <DialogActions>
-            <Button
-              onClick={() => {
-                change({ ...Object.fromEntries(fields.map((key) => [key, ""])), category: "", page: "1" });
-                setFiltersOpen(false);
-              }}
-            >
-              {t("audit.reset")}
-            </Button>
-            <Button
-              onClick={() => {
-                change({ ...draft, category: categories.join(","), page: "1" });
-                setFiltersOpen(false);
-              }}
-              variant="contained"
-            >
-              {t("audit.apply")}
-            </Button>
-          </DialogActions>
-        </Dialog>
-        <Dialog open={!!detail} onClose={() => setDetail(undefined)} fullWidth maxWidth="md">
-          <DialogTitle>
-            {t("audit.details")} #{detail?.id}
-          </DialogTitle>
+        </DraggableDialog>
+        <DraggableDialog
+          title={`${t("audit.details")} #${detail?.id ?? ""}`}
+          showActions
+          showCancel
+          hideOk
+          cancelText={t("audit.close")}
+          dialogProps={{ open: !!detail, onClose: () => setDetail(undefined), fullWidth: true, maxWidth: "md" }}
+        >
           <DialogContent>
             {detail && (
               <Stack spacing={1}>
@@ -347,12 +427,12 @@ export default function AuditLogList() {
               </Stack>
             )}
           </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setDetail(undefined)}>{t("audit.close")}</Button>
-          </DialogActions>
-        </Dialog>
-        <Dialog open={cleanupOpen} onClose={busy ? undefined : () => setCleanupOpen(false)} fullWidth maxWidth="sm">
-          <DialogTitle>{t("audit.cleanup")}</DialogTitle>
+        </DraggableDialog>
+        <DraggableDialog
+          title={t("audit.cleanup")}
+          loading={busy}
+          dialogProps={{ open: cleanupOpen, onClose: () => setCleanupOpen(false), fullWidth: true, maxWidth: "sm" }}
+        >
           <DialogContent>
             <Stack spacing={2} sx={{ pt: 1 }}>
               <Alert severity="warning">{t("audit.cleanupDescription")}</Alert>
@@ -370,15 +450,24 @@ export default function AuditLogList() {
               </Typography>
             </Stack>
           </DialogContent>
-          <DialogActions>
-            <Button disabled={busy} onClick={() => setCleanupOpen(false)}>
-              {t("audit.close")}
-            </Button>
-            <Button color="error" disabled={busy || !Number.isFinite(Date.parse(cutoff))} onClick={cleanup}>
-              {t("audit.cleanup")}
-            </Button>
-          </DialogActions>
-        </Dialog>
+          <StyledDialogActions>
+            <Box />
+            <Stack direction="row" spacing={1}>
+              <Button disabled={busy} onClick={() => setCleanupOpen(false)}>
+                {t("audit.close")}
+              </Button>
+              <LoadingButton
+                variant="contained"
+                color="error"
+                loading={busy}
+                disabled={!Number.isFinite(Date.parse(cutoff))}
+                onClick={cleanup}
+              >
+                <span>{t("audit.cleanup")}</span>
+              </LoadingButton>
+            </Stack>
+          </StyledDialogActions>
+        </DraggableDialog>
         <AuditArchiveDialog
           open={exportOpen}
           onClose={() => setExportOpen(false)}

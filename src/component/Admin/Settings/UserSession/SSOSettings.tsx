@@ -1,34 +1,16 @@
 import { ExpandMoreRounded } from "@mui/icons-material";
-import { Accordion, AccordionDetails, FormControlLabel, styled } from "@mui/material";
-import MuiAccordionSummary, { AccordionSummaryProps } from "@mui/material/AccordionSummary";
-import { useContext } from "react";
+import { AccordionDetails, FormControlLabel } from "@mui/material";
+import { AccordionSummary, StyledAccordion } from "../../Common/SettingsAccordion.tsx";
+import React, { useContext } from "react";
 import { Alert, Button, Stack, Typography } from "@mui/material";
 import { ProviderRegistry, ExternalProvider } from "../../../../api/openid.ts";
 import { SettingContext } from "../SettingWrapper.tsx";
 import OpenIDProviderEditor from "./OpenIDProviderEditor.tsx";
 import { useTranslation } from "react-i18next";
-import { StyledCheckbox } from "../../../Common/StyledComponents.tsx";
+import Add from "../../../Icons/Add.tsx";
+import { SecondaryButton, StyledCheckbox } from "../../../Common/StyledComponents.tsx";
 
-export const AccordionSummary = styled((props: AccordionSummaryProps) => <MuiAccordionSummary {...props} />)(
-  ({ theme }) => ({
-    fontSize: theme.typography.body2.fontSize,
-    paddingLeft: theme.spacing(4),
-    "& .MuiFormControlLabel-label": {
-      fontSize: theme.typography.body2.fontSize,
-    },
-    "& .MuiCheckbox-root": {
-      marginRight: theme.spacing(2),
-    },
-  }),
-);
-
-export const StyledAccordion = styled(Accordion)(({ theme }) => ({
-  boxShadow: "none",
-  border: `1px solid ${theme.palette.divider}`,
-  "&::before": {
-    display: "none",
-  },
-}));
+export { AccordionSummary, StyledAccordion } from "../../Common/SettingsAccordion.tsx";
 
 export interface SettingSectionProps {}
 
@@ -125,13 +107,13 @@ const SSOSettings = () => {
           </AccordionDetails>
         </StyledAccordion>
       ))}
-      <Stack direction="row" spacing={1}>
-        <Button type="button" variant="outlined" onClick={() => add("oidc")}>
+      <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+        <SecondaryButton type="button" variant="contained" startIcon={<Add />} onClick={() => add("oidc")}>
           {t("openid.addOIDC")}
-        </Button>
-        <Button type="button" variant="outlined" onClick={() => add("logto")}>
+        </SecondaryButton>
+        <SecondaryButton type="button" variant="contained" startIcon={<Add />} onClick={() => add("logto")}>
           {t("openid.addLogto")}
-        </Button>
+        </SecondaryButton>
       </Stack>
     </Stack>
   );

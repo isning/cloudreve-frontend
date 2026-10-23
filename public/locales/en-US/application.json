@@ -711,7 +711,8 @@
     "automaticPolicyDestination": "Current folder destination: {{name}}",
     "noAvailablePolicies": "No available storage policies",
     "chooseFiles": "Choose files",
-    "retryPolicies": "Retry loading destinations"
+    "retryPolicies": "Retry loading destinations",
+    "policyLoadFailed": "Couldn't load storage destinations. Try again."
   },
   "share": {
     "statistics": "Statistics",
@@ -1020,7 +1021,12 @@
     "validDurationDays": "{{num}} days",
     "reportTarget": "Report target",
     "reportReason": "Reason",
-    "reportReasonOptions": ["Copyright infringement", "Harmful content", "Spam", "Other"],
+    "reportReasonOptions": [
+      "Copyright infringement",
+      "Harmful content",
+      "Spam",
+      "Other"
+    ],
     "reportDescription": "Additional description",
     "reportAbuseSuccess": "Report submitted."
   },

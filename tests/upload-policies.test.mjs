@@ -46,6 +46,7 @@ function fixture() {
       "./core/errors": { UploaderError: Error },
       "./core/uploader/base.ts": { Status: {} },
       "./DropFile.tsx": { DropFileBackground: "DropFileBackground" },
+      "../Dialogs/DraggableDialog.tsx": { __esModule: true, default: "DraggableDialog" },
       "./PasteUploadDialog.tsx": { __esModule: true, default: "PasteUploadDialog" },
       "./Popup/TaskList.tsx": { __esModule: true, default: "TaskList" },
     },

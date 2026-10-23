@@ -1,10 +1,11 @@
-import { LoadingButton } from "@mui/lab";
 import { Alert, Stack, Typography } from "@mui/material";
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { DefaultShareResult, sendAddDefaultShares } from "../../../api/api.ts";
 import { useAppDispatch } from "../../../redux/hooks.ts";
 import SessionManager from "../../../session";
+import { SecondaryLoadingButton } from "../../Common/StyledComponents.tsx";
+import FolderLink from "../../Icons/FolderLink.tsx";
 import SettingForm from "./SettingForm.tsx";
 
 const DefaultShares = (): React.ReactElement => {
@@ -46,9 +47,15 @@ const DefaultShares = (): React.ReactElement => {
         <Typography variant="body2" color="text.secondary">
           {t("setting.defaultSharesDes")}
         </Typography>
-        <LoadingButton variant="outlined" loading={busy} onClick={add}>
-          {t("setting.addDefaultShares")}
-        </LoadingButton>
+        <SecondaryLoadingButton
+          variant="contained"
+          loading={busy}
+          onClick={add}
+          startIcon={<FolderLink />}
+          sx={{ alignSelf: "flex-start" }}
+        >
+          <span>{t("setting.addDefaultShares")}</span>
+        </SecondaryLoadingButton>
         {result && <Alert severity="success">{t("setting.defaultSharesResult", { ...result })}</Alert>}
         {failed && <Alert severity="error">{t("setting.defaultSharesError")}</Alert>}
       </Stack>

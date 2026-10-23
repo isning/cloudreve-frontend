@@ -1,13 +1,4 @@
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  MenuItem,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Alert, Button, DialogContent, LinearProgress, MenuItem, TextField, Typography } from "@mui/material";
 import { useSnackbar } from "notistack";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -20,6 +11,7 @@ import { setRelocateDialog } from "../../../redux/globalStateSlice.ts";
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks.ts";
 import CrUri from "../../../util/uri.ts";
 import SessionManager from "../../../session";
+import DraggableDialog from "../../Dialogs/DraggableDialog.tsx";
 import { ViewTaskAction } from "../../Common/Snackbar/snackbar.tsx";
 
 const Relocate = () => {
@@ -33,6 +25,8 @@ const Relocate = () => {
   const [selected, setSelected] = useState("");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const [retryVersion, setRetryVersion] = useState(0);
   const close = () => dispatch(setRelocateDialog(undefined));
   useEffect(() => {
     let active = true;
@@ -40,18 +34,21 @@ const Relocate = () => {
     setSelected("");
     if (!target || target.owner !== owner) return;
     setLoading(true);
+    setFailed(false);
     dispatch(getAvailableStoragePolicies())
       .then((available) => {
         if (active) setPolicies(available);
       })
-      .catch(() => {})
+      .catch(() => {
+        if (active) setFailed(true);
+      })
       .finally(() => {
         if (active) setLoading(false);
       });
     return () => {
       active = false;
     };
-  }, [target, owner, dispatch]);
+  }, [target, owner, dispatch, retryVersion]);
   const save = async () => {
     if (!target || target.owner !== owner || !authorized || !selected || !policies.some((p) => p.id === selected))
       return;
@@ -80,9 +77,31 @@ const Relocate = () => {
     }
   };
   return (
-    <Dialog open={!!target && target.owner === owner} onClose={saving ? undefined : close} fullWidth maxWidth="xs">
-      <DialogTitle>{t("fileManager.relocateStoragePolicy")}</DialogTitle>
+    <DraggableDialog
+      title={t("fileManager.relocateStoragePolicy")}
+      showActions
+      showCancel
+      loading={saving}
+      disabled={loading || !selected || !authorized}
+      onAccept={save}
+      okText={t("fileManager.startStorageMigration")}
+      dialogProps={{ open: !!target && target.owner === owner, onClose: close, fullWidth: true, maxWidth: "xs" }}
+    >
       <DialogContent>
+        {loading && <LinearProgress sx={{ mb: 2 }} />}
+        {failed && (
+          <Alert
+            severity="error"
+            sx={{ mb: 2 }}
+            action={
+              <Button size="small" color="inherit" onClick={() => setRetryVersion((value) => value + 1)}>
+                {t("uploader.retryPolicies")}
+              </Button>
+            }
+          >
+            {t("uploader.policyLoadFailed")}
+          </Alert>
+        )}
         <Typography variant="body2" color="text.secondary">
           {t(
             target?.files.some((file) => file.path && new CrUri(file.path).is_root())
@@ -110,21 +129,13 @@ const Relocate = () => {
             </MenuItem>
           ))}
         </TextField>
-        {!loading && !policies.length && (
+        {!loading && !failed && !policies.length && (
           <Typography color="error" variant="body2">
             {t("uploader.noAvailablePolicies")}
           </Typography>
         )}
       </DialogContent>
-      <DialogActions>
-        <Button disabled={saving} onClick={close}>
-          {t("cancel", { ns: "common" })}
-        </Button>
-        <Button disabled={loading || saving || !selected || !authorized} onClick={save}>
-          {t("fileManager.startStorageMigration")}
-        </Button>
-      </DialogActions>
-    </Dialog>
+    </DraggableDialog>
   );
 };
 export default Relocate;

@@ -91,7 +91,7 @@ export function componentFixture(filename, props, modules, globals = {}, context
     if (!node || typeof node !== "object") return [];
     return [
       ...(predicate(node) ? [node] : []),
-      ...[node.props?.children, node.props?.control, node.props?.action]
+      ...[node.props?.children, node.props?.control, node.props?.action, node.props?.secondaryAction]
         .flat(Infinity)
         .flatMap((child) => (child && typeof child === "object" ? findAll(predicate, child) : [])),
     ];

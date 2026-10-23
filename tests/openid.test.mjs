@@ -62,6 +62,7 @@ function fixture(filename, initialProps = {}, context = {}) {
     react,
     "react/jsx-runtime": { jsx, jsxs: jsx, Fragment: "Fragment" },
     "@mui/material": material,
+    "@mui/lab": { LoadingButton: "LoadingButton" },
     "@mui/icons-material": material,
     "@mui/material/AccordionSummary": { __esModule: true, default: "AccordionSummary" },
     "react-i18next": { useTranslation: () => ({ t: (key) => key }), Trans: "Trans" },
@@ -101,7 +102,8 @@ function fixture(filename, initialProps = {}, context = {}) {
       if (name.endsWith("session"))
         return { __esModule: true, default: { currentLoginOrNull: () => ({ user: { id: actor } }) } };
       if (name.includes("SettingWrapper")) return { SettingContext: "SettingContext" };
-      if (name.includes("StyledComponents")) return new Proxy({}, { get: (_, key) => String(key) });
+      if (name.includes("StyledComponents"))
+        return new Proxy({}, { get: (_, key) => (key === "DenseFilledTextField" ? "TextField" : String(key)) });
       if (name.endsWith("/util")) return {};
       return { __esModule: true, default: name.split("/").at(-1).replace(".tsx", "") };
     },
@@ -117,7 +119,7 @@ function fixture(filename, initialProps = {}, context = {}) {
     if (!node || typeof node !== "object") return [];
     return [
       ...(predicate(node) ? [node] : []),
-      ...[node.props?.children, node.props?.secondaryAction, node.props?.control]
+      ...[node.props?.children, node.props?.secondaryAction, node.props?.settingAction, node.props?.control]
         .flat(Infinity)
         .flatMap((child) => (child && typeof child === "object" ? findAll(predicate, child) : [])),
     ];
@@ -151,7 +153,9 @@ const provider = () => ({
   config: { client_secret: "old-fixture-value" },
   wellknown: { issuer: "https://idp.example" },
 });
-const button = (label) => (node) => node.type === "Button" && node.props.children === label;
+const button = (label) => (node) =>
+  ["Button", "LoadingButton", "SecondaryLoadingButton"].includes(node.type) &&
+  (node.props.children === label || node.props.children?.props?.children === label);
 
 test("discovery preserves current provider edits, other providers and registry counters", async () => {
   const context = {

@@ -1,14 +1,5 @@
 import dayjs from "dayjs";
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  MenuItem,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Alert, Button, DialogContent, MenuItem, TextField, Typography } from "@mui/material";
 import { getAvailableStoragePolicies } from "../../api/api.ts";
 import { StoragePolicy } from "../../api/explorer.ts";
 import CrUri, { Filesystem } from "../../util/uri";
@@ -32,6 +23,7 @@ import { UploaderError } from "./core/errors";
 import Base, { Status } from "./core/uploader/base.ts";
 import { DropFileBackground } from "./DropFile.tsx";
 import PasteUploadDialog from "./PasteUploadDialog.tsx";
+import DraggableDialog from "../Dialogs/DraggableDialog.tsx";
 import TaskList from "./Popup/TaskList.tsx";
 
 let totalProgressCollector: NodeJS.Timeout | null = null;
@@ -347,10 +339,16 @@ const Uploader = () => {
 
   return (
     <>
-      <Dialog open={!!selection} onClose={() => setSelection(undefined)} fullWidth maxWidth="xs">
-        <DialogTitle>
-          {t(selection?.type === SelectType.Directory ? "fileManager.uploadFolder" : "fileManager.uploadFiles")}
-        </DialogTitle>
+      <DraggableDialog
+        title={t(selection?.type === SelectType.Directory ? "fileManager.uploadFolder" : "fileManager.uploadFiles")}
+        showActions
+        showCancel
+        okText={t("uploader.chooseFiles")}
+        onAccept={confirmSelection}
+        disabled={loadingPolicies || !policies.length}
+        dialogProps={{ open: !!selection, onClose: () => setSelection(undefined), fullWidth: true, maxWidth: "xs" }}
+        secondaryAction={policyLoadFailed && <Button onClick={loadPolicies}>{t("uploader.retryPolicies")}</Button>}
+      >
         <DialogContent>
           <TextField
             select
@@ -375,20 +373,14 @@ const Uploader = () => {
               </MenuItem>
             ))}
           </TextField>
-          {!loadingPolicies && !policies.length && (
+          {policyLoadFailed && <Alert severity="error">{t("uploader.policyLoadFailed")}</Alert>}
+          {!loadingPolicies && !policyLoadFailed && !policies.length && (
             <Typography color="error" variant="body2">
               {t("uploader.noAvailablePolicies")}
             </Typography>
           )}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setSelection(undefined)}>{t("cancel", { ns: "common" })}</Button>
-          {policyLoadFailed && <Button onClick={loadPolicies}>{t("uploader.retryPolicies")}</Button>}
-          <Button disabled={loadingPolicies || !policies.length} onClick={confirmSelection}>
-            {t("uploader.chooseFiles")}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      </DraggableDialog>
       <PasteUploadDialog onFilePasted={addRawFiles} />
       <DropFileBackground open={dropBgOpen} />
       <TaskList
